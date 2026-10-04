@@ -1,7 +1,7 @@
 """Fake-file detection and identity matching on synthetic audio."""
-from rasa_core import audio, identity
-from rasa_core.audio import Tier
-from rasa_core.identity import Reference, Verdict
+from tarab_core import audio, identity
+from tarab_core.audio import Tier
+from tarab_core.identity import Reference, Verdict
 
 from .conftest import needs_ffmpeg
 

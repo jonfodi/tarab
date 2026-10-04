@@ -1,6 +1,6 @@
-# rasa
+# tarab
 
-Find, verify and file DJ-quality tracks from Soulseek. Paste a track list or a Bandcamp link; rasa finds the best
+Find, verify and file DJ-quality tracks from Soulseek. Paste a track list or a Bandcamp link; tarab finds the best
 copy on the network, checks it's real lossless (not a transcode) and the right track (not a mislabeled rip or a
 different edit), and files it as `Artist - Title` in your library. Optional 320k MP3 copies for old CDJs.
 
@@ -9,9 +9,9 @@ Free and open source. macOS.
 ## Status
 
 - **Phase 1 (done):** `core/`: the engine as a Python package with tests and a CLI.
-- **Phase 2 (done):** slskd runs natively (no Docker), managed by rasa; login in the macOS Keychain.
+- **Phase 2 (done):** slskd runs natively (no Docker), managed by tarab; login in the macOS Keychain.
 - **Phase 3 (working, unstyled):** Tauri desktop app driving the engine over a local API.
-- **Phase 4 (done for beta):** self-contained `rasa.app` + DMG (ad-hoc signed). Not yet: Developer ID signing/notarization, auto-update, Intel build.
+- **Phase 4 (done for beta):** self-contained `tarab.app` + DMG (ad-hoc signed). Not yet: Developer ID signing/notarization, auto-update, Intel build.
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/INSTALL.md](docs/INSTALL.md) (for users) and
 [docs/RELEASING.md](docs/RELEASING.md).
@@ -24,25 +24,25 @@ Needs Rust, pnpm, uv and ffmpeg.
 cd app && pnpm install && pnpm tauri dev
 ```
 
-The app starts the engine (`uv run rasa serve` in `core/`), which installs and runs slskd. First launch asks for
+The app starts the engine (`uv run tarab serve` in `core/`), which installs and runs slskd. First launch asks for
 your Soulseek login, music folder and sharing preference.
 
 ## Core (CLI)
 
-Needs `ffmpeg` on PATH. rasa installs and runs [slskd](https://github.com/slskd/slskd) itself.
+Needs `ffmpeg` on PATH. tarab installs and runs [slskd](https://github.com/slskd/slskd) itself.
 
 ```sh
 cd core
 uv sync
-uv run rasa daemon install              # official slskd release for this Mac
-uv run rasa login                       # Soulseek account; password goes in the Keychain
-uv run rasa daemon start
-uv run rasa get "Leod - Untitled 09" "Repair - Page-R | 6:51" "Roger Gerressen - Untitled 1 [SUSH31]"
-uv run rasa get -f tracks.txt           # one per line; a "TITLE - ARTIST" header flips the order
-uv run rasa ep https://label.bandcamp.com/album/some-ep
-uv run rasa watch add "Repair - Page-R | 6:51" && uv run rasa watch run
-uv run rasa lq                          # 320k MP3 copies for old CDJs
-uv run rasa verify file.flac            # transcode check
+uv run tarab daemon install              # official slskd release for this Mac
+uv run tarab login                       # Soulseek account; password goes in the Keychain
+uv run tarab daemon start
+uv run tarab get "Leod - Untitled 09" "Repair - Page-R | 6:51" "Roger Gerressen - Untitled 1 [SUSH31]"
+uv run tarab get -f tracks.txt           # one per line; a "TITLE - ARTIST" header flips the order
+uv run tarab ep https://label.bandcamp.com/album/some-ep
+uv run tarab watch add "Repair - Page-R | 6:51" && uv run tarab watch run
+uv run tarab lq                          # 320k MP3 copies for old CDJs
+uv run tarab verify file.flac            # transcode check
 uv run pytest
 ```
 

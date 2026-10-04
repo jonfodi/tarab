@@ -7,8 +7,8 @@ from http.server import ThreadingHTTPServer
 
 import pytest
 
-from rasa_core import server
-from rasa_core.fetcher import Result, Status
+from tarab_core import server
+from tarab_core.fetcher import Result, Status
 
 
 class FakeFetcher:
@@ -16,7 +16,7 @@ class FakeFetcher:
         self.sink = sink
 
     def fetch(self, q, opts):
-        from rasa_core.events import Event
+        from tarab_core.events import Event
         self.sink(Event("start", str(q), str(q)))
         if "Rare" in q.title:
             return Result(str(q), Status.NOT_FOUND, note="no matching files")

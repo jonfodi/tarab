@@ -17,8 +17,7 @@ from . import __version__
 from .identity import Reference, clip_from_preview, clip_from_stream
 from .text import STOP, VARIANTS, Query, compact_in, other_version, tokens
 
-# MusicBrainz asks clients to identify themselves with contact info; set to the repo URL once it's public.
-UA = f"rasa/{__version__} (open-source DJ library tool)"
+UA = f"tarab/{__version__} (https://github.com/jonfodi/tarab)"
 _http = requests.Session()
 _http.headers["User-Agent"] = UA
 
@@ -229,5 +228,5 @@ def reference(q: Query) -> Reference | None:
     if ref and clip_errors and not clips:
         ref.warning = f"official audio unavailable ({clip_errors[0]}): checking length only"
         import sys
-        print(f"rasa: {q}: {ref.warning}", file=sys.stderr)
+        print(f"tarab: {q}: {ref.warning}", file=sys.stderr)
     return ref

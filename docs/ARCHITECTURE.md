@@ -1,17 +1,17 @@
 # Architecture
 
-rasa runs entirely on the user's Mac. Each user logs in with their own Soulseek account; there is no rasa server.
+tarab runs entirely on the user's Mac. Each user logs in with their own Soulseek account; there is no tarab server.
 
 ```
-┌──────────────────────── rasa.app ────────────────────────┐
+┌──────────────────────── tarab.app ────────────────────────┐
 │  Tauri shell (Rust + web UI)                              │
 │     │  local HTTP + server-sent events (127.0.0.1)        │
-│  rasa-core (Python, bundled)  ── ffmpeg/ffprobe (bundled) │
+│  tarab-core (Python, bundled)  ── ffmpeg/ffprobe (bundled) │
 │     │  REST (X-API-Key)                                   │
 │  slskd (bundled .NET binary) ──── Soulseek network        │
 └───────────────────────────────────────────────────────────┘
-State: ~/Library/Application Support/rasa/{settings.json, rasa.db, slskd/}
-Music: ~/Music/rasa/HQ (shared by default), ~/Music/rasa/LQ (optional MP3s)
+State: ~/Library/Application Support/tarab/{settings.json, tarab.db, slskd/}
+Music: ~/Music/tarab/HQ (shared by default), ~/Music/tarab/LQ (optional MP3s)
 ```
 
 ## core/ modules
@@ -27,14 +27,14 @@ Music: ~/Music/rasa/HQ (shared by default), ~/Music/rasa/LQ (optional MP3s)
 | `fetcher` | one track end to end; emits `events` |
 | `library` | naming, filing into HQ, LQ MP3 export |
 | `state` | SQLite: library index, flaky peers, known-wrong files, wishlist, history |
-| `cli` | `rasa get / ep / watch / lq / verify / import / config` |
+| `cli` | `tarab get / ep / watch / lq / verify / import / config` |
 
 Network services are wrapped so tests swap in fakes (`tests/test_fetcher.py` runs the full pipeline offline).
 
 ## Phase 2: native slskd
 
 - Ship the official slskd osx-arm64 release (self-contained .NET) unmodified in `Contents/Resources/bin`.
-- rasa writes `slskd.yml` (generated API key bound to 127.0.0.1, downloads/incomplete dirs, shares = HQ +
+- tarab writes `slskd.yml` (generated API key bound to 127.0.0.1, downloads/incomplete dirs, shares = HQ +
   extras, upload limits) and passes the Soulseek login via env vars, then starts/stops slskd as a child process.
 - Login state and conflicts ("logged in elsewhere") surface in the UI.
 
@@ -45,8 +45,8 @@ progress), Listen (tracks whose identity couldn't be confirmed), Wishlist, Libra
 
 ## Licensing
 
-- rasa: MIT proposed (open source, free).
-- slskd is AGPL-3.0. Shipping it unmodified as a separate program alongside rasa is "mere aggregation";
+- tarab: MIT proposed (open source, free).
+- slskd is AGPL-3.0. Shipping it unmodified as a separate program alongside tarab is "mere aggregation";
   we include its license and a link to its source. Modifying slskd would require publishing those changes.
 - ffmpeg: ship an LGPL build (no `--enable-gpl` components needed except libmp3lame, which is LGPL).
 

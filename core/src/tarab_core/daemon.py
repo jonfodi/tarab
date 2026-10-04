@@ -1,6 +1,6 @@
 """Run slskd as a managed child process (no Docker): install, configure, start, stop, watch login state.
 
-slskd ships unmodified (AGPL-3.0, https://github.com/slskd/slskd). rasa only writes its config file and passes
+slskd ships unmodified (AGPL-3.0, https://github.com/slskd/slskd). tarab only writes its config file and passes
 the Soulseek login through environment variables.
 """
 from __future__ import annotations
@@ -23,7 +23,7 @@ from .config import Settings, app_dir, bundled_tool
 from .slskd import Slskd
 
 SLSKD_VERSION = "0.26.0"
-KEYCHAIN_SERVICE = "rasa-soulseek"
+KEYCHAIN_SERVICE = "tarab-soulseek"
 
 
 # ---------------------------------------------------------------- credentials (macOS Keychain)
@@ -90,20 +90,20 @@ def _yaml_str(s: str) -> str:
 
 
 def write_config(s: Settings) -> Path:
-    """slskd.yml from rasa settings. Called on every start, so settings changes apply on restart."""
+    """slskd.yml from tarab settings. Called on every start, so settings changes apply on restart."""
     if not s.slskd_api_key:
         s.slskd_api_key = secrets.token_urlsafe(32)
         s.save()
     shares = []
     if s.share_hq:
         s.hq.mkdir(parents=True, exist_ok=True)
-        shares.append(f"[rasa]{s.hq}")          # alias hides the local path (it contains your Mac username)
+        shares.append(f"[tarab]{s.hq}")          # alias hides the local path (it contains your Mac username)
     for i, extra in enumerate(s.share_extra, 1):
         shares.append(f"[shared{i}]{Path(extra).expanduser()}")
-    web_user, web_pass = "rasa", secrets.token_urlsafe(16)   # slskd's own web UI: not used, locked down
+    web_user, web_pass = "tarab", secrets.token_urlsafe(16)   # slskd's own web UI: not used, locked down
     port = int(s.slskd_url.rsplit(":", 1)[1].split("/")[0])
     lines = [
-        "# Written by rasa on every start; edit settings in rasa instead.",
+        "# Written by tarab on every start; edit settings in tarab instead.",
         "remote_configuration: false",
         "directories:",
         f"  downloads: {_yaml_str(str(s.downloads))}",
@@ -126,7 +126,7 @@ def write_config(s: Settings) -> Path:
         f"    username: {web_user}",
         f"    password: {_yaml_str(web_pass)}",
         "    api_keys:",
-        "      rasa:",
+        "      tarab:",
         f"        key: {_yaml_str(s.slskd_api_key)}",
         "        role: readwrite",
         "        cidr: 127.0.0.1/32,::1/128",
@@ -172,13 +172,13 @@ def start(s: Settings, username: str | None = None, password: str | None = None)
         return pid
     username = username or s.soulseek_username
     if not username:
-        raise RuntimeError("no Soulseek account set up: run `rasa login`")
+        raise RuntimeError("no Soulseek account set up: run `tarab login`")
     password = password or load_password(username)
     if not password:
-        raise RuntimeError(f"no password for {username} in the Keychain: run `rasa login`")
+        raise RuntimeError(f"no password for {username} in the Keychain: run `tarab login`")
     exe = binary()
     if not exe:
-        raise RuntimeError("slskd isn't installed: run `rasa daemon install`")
+        raise RuntimeError("slskd isn't installed: run `tarab daemon install`")
     write_config(s)
     env = {**os.environ, "SLSKD_SLSK_USERNAME": username, "SLSKD_SLSK_PASSWORD": password, "SLSKD_NO_LOGO": "true"}
     log = open(log_path(), "ab")

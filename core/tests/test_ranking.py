@@ -1,7 +1,7 @@
 """Candidate filtering and ranking on mock Soulseek responses."""
-from rasa_core.audio import Tier
-from rasa_core.ranking import candidates
-from rasa_core.text import Query
+from tarab_core.audio import Tier
+from tarab_core.ranking import candidates
+from tarab_core.text import Query
 
 
 def f(name, size=50_000_000, length=405, br=None, bd=16, sr=44100, vbr=False):

@@ -3,12 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>rasa</title>
+    <title>tarab</title>
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
     <header>
-      <strong>rasa</strong>
+      <strong>tarab</strong>
       <nav id="tabs">
         <button data-tab="get" class="on">Get</button>
         <button data-tab="listen">Listen <span id="listen-count"></span></button>
@@ -41,13 +41,13 @@ Repair - Page-R [SUS006] | 6:51"></textarea>
       </section>
 
       <section id="listen" class="tab">
-        <p class="hint">Downloaded, but rasa couldn't confirm it's the right track or version (no official audio to
+        <p class="hint">Downloaded, but tarab couldn't confirm it's the right track or version (no official audio to
           compare against, or it sounds like another edit). Give it a listen.</p>
         <ul id="listen-list" class="list"></ul>
       </section>
 
       <section id="wishlist" class="tab">
-        <p class="hint">Tracks nobody is sharing in good quality right now. rasa checks again every 20 minutes
+        <p class="hint">Tracks nobody is sharing in good quality right now. tarab checks again every 20 minutes
           while it's open. Tracks that aren't found are added here automatically.</p>
         <div class="row controls">
           <input id="wish-line" placeholder="Artist - Title | m:ss" /><button id="wish-add">Add</button>
@@ -73,22 +73,22 @@ Repair - Page-R [SUS006] | 6:51"></textarea>
 
     <dialog id="setup">
       <form id="setup-form" method="dialog">
-        <h2>Set up rasa</h2>
-        <p>rasa downloads from <b>Soulseek</b>, a peer-to-peer network. Log in with your Soulseek account. New to
+        <h2>Set up tarab</h2>
+        <p>tarab downloads from <b>Soulseek</b>, a peer-to-peer network. Log in with your Soulseek account. New to
           Soulseek? Pick any unused username and a password: the first login creates the account.</p>
-        <p class="hint">If you also use SoulseekQt or Nicotine+ with the same account, close them while rasa runs
+        <p class="hint">If you also use SoulseekQt or Nicotine+ with the same account, close them while tarab runs
           (an account can only be logged in once).</p>
         <label>Username <input name="username" required autocomplete="off" /></label>
         <label>Password <input name="password" type="password" required /></label>
         <label>Music folder <input name="hq_dir" /></label>
         <label><input type="checkbox" name="make_lq" /> I play on old CDJs: also make 320k MP3 copies</label>
         <label>MP3 folder <input name="lq_dir" /></label>
-        <label><input type="checkbox" name="share_hq" checked /> Share my rasa music folder on Soulseek
+        <label><input type="checkbox" name="share_hq" checked /> Share my tarab music folder on Soulseek
           (recommended)</label>
         <p class="hint">Soulseek runs on sharing: everything comes from other users' computers. Many users let
           sharers skip their queues and refuse people who share nothing, so sharing makes your downloads faster.
           Other users can download the files in your music folder (never change or delete them). Only tracks that
-          passed rasa's checks are in that folder. You can turn this off any time.</p>
+          passed tarab's checks are in that folder. You can turn this off any time.</p>
         <div class="row controls"><span id="setup-msg"></span><span class="grow"></span>
           <button id="setup-go" class="primary" value="go">Connect</button></div>
       </form>

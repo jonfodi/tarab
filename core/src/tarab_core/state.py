@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS history (
 
 class State:
     def __init__(self, path: Path | None = None):
-        self.path = path or app_dir() / "rasa.db"
+        self.path = path or app_dir() / "tarab.db"
         self._db = sqlite3.connect(self.path, check_same_thread=False, isolation_level=None)
         self._db.row_factory = sqlite3.Row
         self._lock = threading.Lock()

@@ -73,7 +73,7 @@ def _download(url: str) -> Path:
     import requests
     r = requests.get(url, timeout=30, headers={"User-Agent": "Mozilla/5.0"})
     r.raise_for_status()
-    fd, name = tempfile.mkstemp(suffix=".mp3", prefix="rasa-ref-")
+    fd, name = tempfile.mkstemp(suffix=".mp3", prefix="tarab-ref-")
     with open(fd, "wb") as fh:
         fh.write(r.content)
     return Path(name)
@@ -110,7 +110,7 @@ def clip_from_stream(url: str, length: float) -> np.ndarray | None:
         return features(x) if len(x) >= 5 * SR else None
     except Exception as e:
         import sys
-        print(f"rasa: couldn't fetch reference audio ({e})", file=sys.stderr)
+        print(f"tarab: couldn't fetch reference audio ({e})", file=sys.stderr)
         return None
 
 

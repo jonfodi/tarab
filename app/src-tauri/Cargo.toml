@@ -1,12 +1,12 @@
 [package]
-name = "rasa"
+name = "tarab"
 version = "0.1.0"
 description = "Find, verify and file DJ-quality tracks from Soulseek"
 edition = "2021"
 license = "MIT"
 
 [lib]
-name = "rasa_lib"
+name = "tarab_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

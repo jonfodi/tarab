@@ -1,4 +1,4 @@
-"""Settings and app paths. Stored as JSON in ~/Library/Application Support/rasa/settings.json."""
+"""Settings and app paths. Stored as JSON in ~/Library/Application Support/tarab/settings.json."""
 from __future__ import annotations
 
 import json
@@ -7,11 +7,11 @@ import sys
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
-APP_NAME = "rasa"
+APP_NAME = "tarab"
 
 
 def app_dir() -> Path:
-    d = Path(os.environ.get("RASA_HOME") or Path.home() / "Library" / "Application Support" / APP_NAME)
+    d = Path(os.environ.get("TARAB_HOME") or Path.home() / "Library" / "Application Support" / APP_NAME)
     d.mkdir(parents=True, exist_ok=True)
     return d
 
@@ -19,7 +19,7 @@ def app_dir() -> Path:
 def bundled_tool(name: str) -> str | None:
     """A binary shipped inside the .app (Contents/MacOS or Resources/bin), when running packaged."""
     roots = [Path(sys.executable).parent, Path(sys.executable).parent.parent / "Resources" / "bin"]
-    if env := os.environ.get("RASA_BIN_DIR"):
+    if env := os.environ.get("TARAB_BIN_DIR"):
         roots.insert(0, Path(env))
     for r in roots:
         if (p := r / name).is_file() and os.access(p, os.X_OK):
@@ -30,9 +30,9 @@ def bundled_tool(name: str) -> str | None:
 @dataclass
 class Settings:
     # Where verified tracks go, named "Artist - Title.ext"
-    hq_dir: str = str(Path.home() / "Music" / "rasa" / "HQ")
+    hq_dir: str = str(Path.home() / "Music" / "tarab" / "HQ")
     # 320k MP3 copies for players without FLAC/AIFF support (old CDJs)
-    lq_dir: str = str(Path.home() / "Music" / "rasa" / "LQ")
+    lq_dir: str = str(Path.home() / "Music" / "tarab" / "LQ")
     make_lq: bool = False
     # Soulseek, via slskd (password lives in the macOS Keychain, not here)
     soulseek_username: str = ""

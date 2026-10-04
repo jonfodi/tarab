@@ -1,12 +1,12 @@
-"""rasa command line.
+"""tarab command line.
 
-  rasa get "Artist - Title" "Artist - Title [CAT] | 6:51"
-  rasa get -f tracks.txt                 # one per line; a "TITLE - ARTIST" header flips the order
-  rasa ep "Artist - Release [CAT]"       # or a Bandcamp album link
-  rasa watch add "Repair - Page-R | 6:51" ; rasa watch run
-  rasa lq                                # 320k MP3 copies of HQ for old CDJs
-  rasa verify file.flac ...              # fake-file + quality check
-  rasa import ~/Music/HQ                 # index an existing "Artist - Title" folder
+  tarab get "Artist - Title" "Artist - Title [CAT] | 6:51"
+  tarab get -f tracks.txt                 # one per line; a "TITLE - ARTIST" header flips the order
+  tarab ep "Artist - Release [CAT]"       # or a Bandcamp album link
+  tarab watch add "Repair - Page-R | 6:51" ; tarab watch run
+  tarab lq                                # 320k MP3 copies of HQ for old CDJs
+  tarab verify file.flac ...              # fake-file + quality check
+  tarab import ~/Music/HQ                 # index an existing "Artist - Title" folder
 """
 from __future__ import annotations
 
@@ -224,7 +224,7 @@ def cmd_daemon(args):
 
 
 def main(argv: list[str] | None = None):
-    ap = argparse.ArgumentParser(prog="rasa", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = argparse.ArgumentParser(prog="tarab", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
 
     def fetch_flags(p):
@@ -268,7 +268,7 @@ def main(argv: list[str] | None = None):
     i.add_argument("--verify", action="store_true", help="run the quality check on each file (slow)")
     i.set_defaults(fn=cmd_import)
 
-    c = sub.add_parser("config", help="show or change settings: rasa config --set hq_dir=~/Music/HQ")
+    c = sub.add_parser("config", help="show or change settings: tarab config --set hq_dir=~/Music/HQ")
     c.add_argument("--set", nargs="*")
     c.set_defaults(fn=cmd_config)
 

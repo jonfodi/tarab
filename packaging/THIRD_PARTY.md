@@ -1,13 +1,13 @@
-# Third-party software bundled with rasa
+# Third-party software bundled with tarab
 
-rasa (MIT) ships these programs unmodified, as separate executables inside `rasa.app/Contents/Resources/bin/`.
+tarab (MIT) ships these programs unmodified, as separate executables inside `tarab.app/Contents/Resources/bin/`.
 
 ## slskd
 
 - Version 0.26.0, https://github.com/slskd/slskd
 - License: GNU Affero General Public License v3.0 (with additional terms), https://github.com/slskd/slskd/blob/master/LICENSE
 - Source: https://github.com/slskd/slskd/tree/0.26.0
-- Used unmodified; rasa only writes its configuration file and talks to its HTTP API.
+- Used unmodified; tarab only writes its configuration file and talks to its HTTP API.
 
 ## FFmpeg / FFprobe
 

@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "rasa",
+  "productName": "tarab",
   "version": "0.1.0",
-  "identifier": "app.rasa.desktop",
+  "identifier": "top.tarab.app",
   "build": {
     "beforeDevCommand": "pnpm dev",
     "devUrl": "http://localhost:1420",
@@ -10,7 +10,7 @@
     "frontendDist": "../dist"
   },
   "app": {
-    "windows": [{ "title": "rasa", "width": 1100, "height": 760, "minWidth": 760, "minHeight": 520 }],
+    "windows": [{ "title": "tarab", "width": 1100, "height": 760, "minWidth": 760, "minHeight": 520 }],
     "security": {
       "csp": "default-src 'self'; connect-src 'self' http://127.0.0.1:*; style-src 'self' 'unsafe-inline'; img-src 'self' data:"
     }
@@ -20,7 +20,7 @@
     "targets": ["app", "dmg"],
     "category": "Music",
     "resources": {
-      "../../build/engine/dist/rasa-engine/": "engine/",
+      "../../build/engine/dist/tarab-engine/": "engine/",
       "../../build/vendor/": "bin/",
       "../../packaging/THIRD_PARTY.md": "THIRD_PARTY.md"
     },

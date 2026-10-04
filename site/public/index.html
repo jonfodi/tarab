@@ -59,7 +59,7 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 1px solid 
 .line-wrap { position: relative; display: grid; gap: 34px; justify-items: center; width: 100%; }
 h1 {
   margin: 0; font-family: var(--serif); font-style: italic; font-weight: 300;
-  font-size: clamp(2.6rem, 7.4vw, 6.4rem); line-height: 1; letter-spacing: -0.01em;
+  font-size: clamp(2.2rem, 6vw, 5.2rem); line-height: 1; letter-spacing: -0.01em;
   text-wrap: balance; text-shadow: 0 0 40px rgba(20,11,8,0.6);
   animation: arrive 2.4s ease both 0.4s;
 }
@@ -85,9 +85,11 @@ h1 {
 
 .hud {
   position: fixed; inset: auto 0 0 0; z-index: 3;
-  display: flex; justify-content: flex-end;
+  display: flex; justify-content: space-between; align-items: center; gap: 16px;
   padding: 0 clamp(16px, 4vw, 40px) calc(env(safe-area-inset-bottom, 0px) + 20px);
 }
+.made { margin: 0; font: 400 0.68rem/1 var(--mono); letter-spacing: 0.14em; color: var(--paper-faint); }
+.made .heart { color: var(--ember); }
 .listen .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--paper-faint); margin-right: 8px; vertical-align: 1px; transition: background 0.3s; }
 .listen[aria-pressed="true"] .dot { background: var(--ember); box-shadow: 0 0 10px var(--ember); }
 
@@ -135,6 +137,7 @@ h1 {
 </main>
 
 <div class="hud">
+  <p class="made">made with <span class="heart">love</span> in NYC</p>
   <button type="button" class="quiet listen" id="listen" aria-pressed="false"><span class="dot"></span>listen</button>
 </div>
 

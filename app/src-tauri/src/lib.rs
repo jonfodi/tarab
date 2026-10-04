@@ -1,4 +1,4 @@
-//! The rasa desktop shell: starts the Python engine (`rasa serve`), hands its address and token to the UI,
+//! The tarab desktop shell: starts the Python engine (`tarab serve`), hands its address and token to the UI,
 //! and stops it (and the slskd it manages) when the app quits.
 
 use serde::{Deserialize, Serialize};
@@ -23,18 +23,18 @@ struct Engine {
 }
 
 /// How to launch the engine:
-/// - packaged app: Resources/engine/rasa-engine, with bundled slskd + ffmpeg in Resources/bin
-/// - development: `uv run rasa serve` in ../core (override with RASA_ENGINE_CMD)
+/// - packaged app: Resources/engine/tarab-engine, with bundled slskd + ffmpeg in Resources/bin
+/// - development: `uv run tarab serve` in ../core (override with TARAB_ENGINE_CMD)
 fn engine_command(resources: Option<PathBuf>) -> Command {
     if let Some(res) = resources {
-        let bundled = res.join("engine").join("rasa-engine");
+        let bundled = res.join("engine").join("tarab-engine");
         if bundled.exists() {
             let mut c = Command::new(bundled);
-            c.args(["serve", "--watch-stdin"]).env("RASA_BIN_DIR", res.join("bin"));
+            c.args(["serve", "--watch-stdin"]).env("TARAB_BIN_DIR", res.join("bin"));
             return c;
         }
     }
-    if let Ok(cmd) = std::env::var("RASA_ENGINE_CMD") {
+    if let Ok(cmd) = std::env::var("TARAB_ENGINE_CMD") {
         let mut c = Command::new("/bin/sh");
         c.args(["-c", &cmd]);
         return c;
@@ -42,13 +42,13 @@ fn engine_command(resources: Option<PathBuf>) -> Command {
     let core = concat!(env!("CARGO_MANIFEST_DIR"), "/../../core");
     let mut c = Command::new("/bin/sh");
     // GUI apps don't inherit the shell PATH: look for uv where Homebrew/installers put it.
-    c.args(["-lc", "PATH=\"$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:$PATH\" exec uv run --directory \"$0\" rasa serve --watch-stdin", core]);
+    c.args(["-lc", "PATH=\"$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:$PATH\" exec uv run --directory \"$0\" tarab serve --watch-stdin", core]);
     c
 }
 
-/// Engine stderr goes to ~/Library/Logs/rasa/engine.log (a packaged app has no terminal).
+/// Engine stderr goes to ~/Library/Logs/tarab/engine.log (a packaged app has no terminal).
 fn engine_log() -> Stdio {
-    let dir = PathBuf::from(std::env::var("HOME").unwrap_or_default()).join("Library/Logs/rasa");
+    let dir = PathBuf::from(std::env::var("HOME").unwrap_or_default()).join("Library/Logs/tarab");
     let _ = std::fs::create_dir_all(&dir);
     match OpenOptions::new().create(true).append(true).open(dir.join("engine.log")) {
         Ok(f) => Stdio::from(f),
@@ -63,7 +63,7 @@ fn start_engine(engine: &Engine, resources: Option<PathBuf>) -> Result<Backend, 
         .stdout(Stdio::piped())
         .stderr(stderr)
         .spawn()
-        .map_err(|e| format!("couldn't start the rasa engine: {e}"))?;
+        .map_err(|e| format!("couldn't start the tarab engine: {e}"))?;
     let stdout = child.stdout.take().ok_or("engine has no stdout")?;
     let mut line = String::new();
     BufReader::new(stdout)
@@ -119,7 +119,7 @@ pub fn run() {
             Ok(())
         })
         .build(tauri::generate_context!())
-        .expect("error while building rasa");
+        .expect("error while building tarab");
 
     app.run(|handle, event| {
         if let RunEvent::Exit = event {

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build rasa.app + DMG for Apple Silicon. Usage: scripts/build.sh
+# Build tarab.app + DMG for Apple Silicon. Usage: scripts/build.sh
 # Downloads pinned third-party binaries into build/vendor, freezes the Python engine with PyInstaller,
 # ad-hoc signs every executable, then runs `tauri build`.
 set -euo pipefail
@@ -8,7 +8,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BUILD="$ROOT/build"
 VENDOR="$BUILD/vendor"
 SLSKD_VERSION="0.26.0"
-PY="${RASA_BUILD_PYTHON:-3.13}"
+PY="${TARAB_BUILD_PYTHON:-3.13}"
 
 say() { printf '\n\033[1m==> %s\033[0m\n' "$*"; }
 
@@ -38,12 +38,12 @@ say "engine (PyInstaller, Python $PY)"
 rm -rf "$BUILD/engine"
 uv venv -q --python "$PY" "$BUILD/engine/venv"
 uv pip install -q --python "$BUILD/engine/venv/bin/python" "$ROOT/core" pyinstaller
-(cd "$BUILD/engine" && venv/bin/pyinstaller --noconfirm --clean --log-level WARN --onedir --name rasa-engine \
+(cd "$BUILD/engine" && venv/bin/pyinstaller --noconfirm --clean --log-level WARN --onedir --name tarab-engine \
   --target-arch arm64 --distpath dist --workpath work --specpath . "$ROOT/core/packaging/engine.py")
 # smoke test in an empty environment: must not need Homebrew, uv or a system Python
 TMPHOME="$(mktemp -d)"
-env -i HOME="$TMPHOME" RASA_HOME="$TMPHOME/rasa" RASA_BIN_DIR="$VENDOR" PATH=/usr/bin:/bin \
-  "$BUILD/engine/dist/rasa-engine/rasa-engine" config >/dev/null || { echo "engine smoke test failed"; exit 1; }
+env -i HOME="$TMPHOME" TARAB_HOME="$TMPHOME/tarab" TARAB_BIN_DIR="$VENDOR" PATH=/usr/bin:/bin \
+  "$BUILD/engine/dist/tarab-engine/tarab-engine" config >/dev/null || { echo "engine smoke test failed"; exit 1; }
 rm -rf "$TMPHOME"
 
 say "ad-hoc signing bundled executables"
@@ -58,7 +58,7 @@ cd "$ROOT/app"
 pnpm install --silent
 pnpm tauri build 2>&1 | grep -vE "^\s+(Compiling|Building)" | tail -15
 
-APP="$ROOT/app/src-tauri/target/release/bundle/macos/rasa.app"
+APP="$ROOT/app/src-tauri/target/release/bundle/macos/tarab.app"
 DMG="$(ls -t "$ROOT"/app/src-tauri/target/release/bundle/dmg/*.dmg 2>/dev/null | head -1)"
 codesign --verify --deep "$APP" && echo "signature ok (ad hoc)"
 say "done"

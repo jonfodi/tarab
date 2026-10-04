@@ -4,13 +4,13 @@ from pathlib import Path
 
 import pytest
 
-from rasa_core import audio, fetcher as fetcher_mod, identity
-from rasa_core.config import Settings
-from rasa_core.fetcher import Fetcher, Options, Status
-from rasa_core.identity import Reference
-from rasa_core.slskd import Transfer
-from rasa_core.state import State
-from rasa_core.text import Query
+from tarab_core import audio, fetcher as fetcher_mod, identity
+from tarab_core.config import Settings
+from tarab_core.fetcher import Fetcher, Options, Status
+from tarab_core.identity import Reference
+from tarab_core.slskd import Transfer
+from tarab_core.state import State
+from tarab_core.text import Query
 
 from .conftest import needs_ffmpeg
 
@@ -60,7 +60,7 @@ def env(tmp_path, monkeypatch):
     monkeypatch.setattr(fetcher_mod.time, "sleep", lambda s: None)
     s = Settings(hq_dir=str(tmp_path / "HQ"), lq_dir=str(tmp_path / "LQ"), slskd_downloads=str(tmp_path / "dl"),
                  queue_timeout=0, stall_timeout=0, check_identity=False)
-    return s, State(tmp_path / "rasa.db")
+    return s, State(tmp_path / "tarab.db")
 
 
 def clip_of(path: Path) -> Reference:

@@ -1,4 +1,4 @@
-// rasa UI: talks to the local engine (rasa serve) over HTTP + server-sent events.
+// tarab UI: talks to the local engine (tarab serve) over HTTP + server-sent events.
 import { invoke } from "@tauri-apps/api/core";
 
 type Backend = { port: number; token: string };
@@ -301,7 +301,7 @@ async function boot(): Promise<void> {
   $("#import").addEventListener("click", async () => {
     $("#settings-msg").textContent = "Indexing…";
     const r = await api("POST", "/library/import", {});
-    $("#settings-msg").textContent = `Indexed ${r.imported} tracks from ${r.folder}: rasa won't download them again.`;
+    $("#settings-msg").textContent = `Indexed ${r.imported} tracks from ${r.folder}: tarab won't download them again.`;
   });
   $("#make-lq").addEventListener("click", async () => {
     $("#settings-msg").textContent = "Converting…";

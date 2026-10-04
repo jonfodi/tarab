@@ -6,16 +6,16 @@ Requirements: Apple Silicon Mac, Xcode command line tools, Rust, pnpm, uv.
 scripts/build.sh
 ```
 
-Produces `app/src-tauri/target/release/bundle/dmg/rasa_<version>_aarch64.dmg`. The script:
+Produces `app/src-tauri/target/release/bundle/dmg/tarab_<version>_aarch64.dmg`. The script:
 
 1. downloads pinned third-party binaries into `build/vendor/` (static ffmpeg/ffprobe, slskd release),
-2. freezes the engine (`core/`) with PyInstaller into `build/engine/dist/rasa-engine/` and smoke-tests it in an
+2. freezes the engine (`core/`) with PyInstaller into `build/engine/dist/tarab-engine/` and smoke-tests it in an
    empty environment,
 3. ad-hoc signs every bundled executable (Apple Silicon won't run unsigned code),
 4. runs `tauri build` (bundles `engine/`, `bin/` and `THIRD_PARTY.md` into `Contents/Resources`).
 
 Bump the version in `app/src-tauri/tauri.conf.json`, `app/src-tauri/Cargo.toml`, `app/package.json` and
-`core/pyproject.toml` + `core/src/rasa_core/__init__.py`.
+`core/pyproject.toml` + `core/src/tarab_core/__init__.py`.
 
 ## Signing and notarization (not set up)
 

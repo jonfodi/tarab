@@ -1,7 +1,7 @@
 """Matching heuristics. Each case is a real miss from building the prototype."""
 import pytest
 
-from rasa_core.text import Query, compact_in, other_version, parse_list, tokens
+from tarab_core.text import Query, compact_in, other_version, parse_list, tokens
 
 
 def test_parse_basic():

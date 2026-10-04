@@ -13,8 +13,8 @@ def ffmpeg(*args: str) -> None:
 
 @pytest.fixture(autouse=True)
 def isolated_home(tmp_path, monkeypatch):
-    """Never touch the real ~/Library/Application Support/rasa."""
-    monkeypatch.setenv("RASA_HOME", str(tmp_path / "home"))
+    """Never touch the real ~/Library/Application Support/tarab."""
+    monkeypatch.setenv("TARAB_HOME", str(tmp_path / "home"))
 
 
 @pytest.fixture(scope="session")
