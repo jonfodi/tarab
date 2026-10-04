@@ -129,6 +129,7 @@ h1 {
     <form class="waitlist" id="waitlist" novalidate>
       <label for="email" class="sr" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Email</label>
       <input id="email" name="email" type="email" autocomplete="email" placeholder="your email" required>
+      <input name="website" type="text" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
       <button type="submit" class="quiet">join the waitlist <span class="arrow">→</span></button>
     </form>
     <p class="status" id="status" role="status" aria-live="polite"></p>
@@ -156,7 +157,7 @@ h1 {
 <script>
 // Where waitlist emails go. Any endpoint that accepts a form POST with an `email` field
 // and answers 2xx on success works (Loops, Formspree, Buttondown, a Cloudflare Function).
-const WAITLIST_ENDPOINT = '';
+const WAITLIST_ENDPOINT = '/api/waitlist';
 
 (() => {
   const BPM = 118, BEAT = 60 / BPM;
@@ -352,7 +353,7 @@ const WAITLIST_ENDPOINT = '';
       const res = await fetch(WAITLIST_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json' },
-        body: new URLSearchParams({ email: value }),
+        body: new URLSearchParams({ email: value, website: form.elements.website.value }),
       });
       if (!res.ok) throw new Error(String(res.status));
       form.hidden = true; say('you’re on the list. we’ll write when it’s ready.', true);

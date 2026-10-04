@@ -1,9 +1,17 @@
-// tarab.top: a static page served as a Cloudflare Worker with assets.
-// Deploy from this folder: npx wrangler deploy
+// tarab.top: the static page in ./public, plus a small Worker for waitlist signups.
+// Deploys on push to main (Workers Builds, root directory "site"); by hand: npx wrangler deploy
 {
   "name": "tarab",
+  "main": "src/worker.js",
   "compatibility_date": "2026-10-01",
-  "assets": { "directory": "./public" },
+  "assets": { "directory": "./public", "binding": "ASSETS" },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "tarab-waitlist",
+      "database_id": "ad58fedc-8bca-479a-9747-35ad66b41071"
+    }
+  ],
   "workers_dev": false,
   "routes": [
     { "pattern": "tarab.top", "custom_domain": true },
