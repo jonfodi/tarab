@@ -34,6 +34,7 @@ class Reference:
     bpm: float | None = None
     sources: list[str] = field(default_factory=list)
     strict: bool = False   # the user pinned the length: any other length is wrong, not "unsure"
+    clip_lengths: list[int | None] = field(default_factory=list)   # length of the version each clip came from
 
     def describe(self) -> str:
         ls = ", ".join(fmt_len(l) for l in self.lengths) or "?"
@@ -43,7 +44,8 @@ class Reference:
 
     def pinned(self, length: int) -> Reference:
         """Same reference, but only `length` is acceptable."""
-        return Reference([length], self.clips, self.bpm, [*self.sources, "you"], strict=True)
+        return Reference([length], self.clips, self.bpm, [*self.sources, "you"], strict=True,
+                         clip_lengths=self.clip_lengths)
 
 
 def features(x: np.ndarray, n: int = 4096, hop: int = 1024) -> np.ndarray:
@@ -98,7 +100,13 @@ def check(path: Path, ref: Reference | None) -> tuple[Verdict, str]:
         score = clip_match(path, ref.clips)
         note = f"audio match {score:.2f}, {len_note}"
         if score < ID_WRONG:
-            return Verdict.WRONG, note
+            # Only call it the wrong track when it's the same length as the version the clip came from: a
+            # mislabeled rip (Mininga: 5:28 vs 5:27, audio 0.75). A different edit may simply not contain the
+            # clip's section (a 3:41 mix-CD cut vs the 7:37 original scores ~0.5).
+            known = [l for l in ref.clip_lengths if l]
+            if not known or any(abs(dur - l) <= LENGTH_TOLERANCE for l in known):
+                return Verdict.WRONG, note
+            return Verdict.UNSURE, note + " (a different edit than the official audio: can't confirm)"
         if score >= ID_OK and len_ok is not False:
             return Verdict.OK, note
         return Verdict.UNSURE, note + " (likely another version/edit)"

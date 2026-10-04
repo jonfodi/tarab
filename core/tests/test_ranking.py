@@ -99,3 +99,12 @@ def test_short_title_needs_whole_match():
                  f(r"x\Aril Brikha - On And On (Original Mix).mp3", br=320))]
     assert sorted(names(candidates(Query.parse("Aril Brikha - On & On"), resp))) == \
         ["Aril Brikha - On & On.mp3", "Aril Brikha - On And On (Original Mix).mp3"]
+
+
+def test_mix_cd_edits_rank_last_and_dont_define_the_majority():
+    # Robert Hood: the most-shared copy is the 3:41 blended edit from his Fabric 39 mix CD
+    resp = [peer(f"fab{i}", f(rf"Fabric 39_ Robert Hood\31 - Robert Hood - And Then We Planned Our Escape.flac",
+                              20_000_000, 221), speed=6_000_000) for i in range(6)]
+    resp += [peer("orig", f(r"Robert Hood - Omega\01 And Then We Planned Our Escape.aiff", 80_000_000, 457))]
+    cs = candidates(Query.parse("Robert Hood - And Then We Planned Our Escape"), resp, official_lengths=[221, 457])
+    assert cs[0].username == "orig" and cs[1].mix_compilation

@@ -9,7 +9,7 @@ Free and open source. macOS.
 ## Status
 
 - **Phase 1 (done):** `core/`: the engine as a Python package with tests and a CLI.
-- **Phase 2:** run slskd natively (no Docker), managed by rasa.
+- **Phase 2 (done):** slskd runs natively (no Docker), managed by rasa; login in the macOS Keychain.
 - **Phase 3:** Tauri desktop app.
 - **Phase 4:** packaging, signing, notarization, auto-update.
 
@@ -17,12 +17,14 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Core (CLI)
 
-Needs [slskd](https://github.com/slskd/slskd) running and logged in, plus `ffmpeg` on PATH.
+Needs `ffmpeg` on PATH. rasa installs and runs [slskd](https://github.com/slskd/slskd) itself.
 
 ```sh
 cd core
 uv sync
-uv run rasa config --set slskd_api_key=... hq_dir=~/Music/HQ
+uv run rasa daemon install              # official slskd release for this Mac
+uv run rasa login                       # Soulseek account; password goes in the Keychain
+uv run rasa daemon start
 uv run rasa get "Leod - Untitled 09" "Repair - Page-R | 6:51" "Roger Gerressen - Untitled 1 [SUSH31]"
 uv run rasa get -f tracks.txt           # one per line; a "TITLE - ARTIST" header flips the order
 uv run rasa ep https://label.bandcamp.com/album/some-ep

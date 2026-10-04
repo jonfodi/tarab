@@ -8,6 +8,11 @@ from .audio import LOSSLESS_EXT, Tier
 from .text import STOP, VARIANTS, Query, basename, compact, compact_in, fmt_len, other_version, tokens
 
 MIN_LENGTH = 90   # s: shorter files are previews/clips
+
+# DJ-mix CDs: tracks are short edits blended into their neighbours, the most-shared copy of many classics
+# (e.g. Robert Hood's 3:41 cut on Fabric 39 vs the 7:37 original). Ranked last unless nothing else exists.
+MIX_COMPILATION = re.compile(r"mixed by|\bdj[ -]?mix\b|\bmix ?cd\b|continuous mix|\bfabric ?(live)? ?\d+|"
+                             r"dj[ -]?kicks|global underground|\bbalance ?\d+|\(mixed\)|\bmixed\b", re.I)
 LENGTH_TOLERANCE = 4
 
 
@@ -31,6 +36,7 @@ class Candidate:
     from_release: bool = False   # path contains the catalog number asked for
     version_bonus: int = 0       # "Extended" / "Original Mix" in the name
     flaky_peer: bool = False     # peer stalled or refused before
+    mix_compilation: bool = False  # from a DJ-mix CD (short blended edit)
 
     @property
     def name(self) -> str:
@@ -38,7 +44,7 @@ class Candidate:
 
     def sort_key(self):
         """Higher is better. Version certainty first, then quality, then how fast we'll actually get it."""
-        return (self.from_release, self.ref_match, self.majority, self.tier,
+        return (self.from_release, not self.mix_compilation, self.ref_match, self.majority, self.tier,
                 (self.kbps or 0) if self.tier == Tier.TOO_LOW else 0,
                 not self.flaky_peer, self.free_slot, self.version_bonus, self.ext != "wav",
                 (self.bit_depth or 16) >= 24, -self.queue, self.speed)
@@ -112,11 +118,13 @@ def candidates(q: Query, responses: list[dict], flaky: set[str] = frozenset(),
             c.tier = classify(c)
             c.version_bonus = int("extended" in base_t) + int({"original", "mix"} <= base_t)
             c.flaky_peer = c.username in flaky
+            c.mix_compilation = bool(MIX_COMPILATION.search(name)) and "mixed" not in asked
             out.append(c)
 
     # Versions share titles (album cut vs single edit). When copies clearly agree on a length, that's the version
     # people mean, so prefer it over a rarer one, even a higher-quality one.
-    agree = {id(c): sum(1 for o in out if c.length and o.length and abs(c.length - o.length) <= 3) for c in out}
+    pool = [o for o in out if not o.mix_compilation] or out
+    agree = {id(c): sum(1 for o in pool if c.length and o.length and abs(c.length - o.length) <= 3) for c in out}
     top = max(agree.values(), default=0)
     cat = compact(q.catalog) if q.catalog else None
     for c in out:

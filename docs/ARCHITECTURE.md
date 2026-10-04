@@ -52,6 +52,8 @@ progress), Listen (tracks whose identity couldn't be confirmed), Wishlist, Libra
 
 ## Known issues
 
+- Some peers advertise a free slot and ~84 MB/s but never start uploads (seen under several related names, e.g.
+  SKYLiGHT_D/G/H). Each costs one queue timeout before it's remembered as flaky.
 - When MusicBrainz lists many lengths for a title (compilation edits), "official length" stops discriminating
   versions (e.g. "On & On" picked a 6:15 edit over the 7:54 album version). Deezer lengths, which come with
   audio, should outrank MusicBrainz when they disagree.

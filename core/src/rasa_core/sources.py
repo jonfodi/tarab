@@ -49,7 +49,7 @@ class Release:
                 clip = clip_from_stream(t.audio_url, t.length) if self.source == "Bandcamp" \
                     else _safe(lambda: clip_from_preview(t.audio_url))
             q.ref = Reference([t.length] if t.length else [], [clip] if clip is not None else [], None,
-                              [self.source], strict=bool(t.length))
+                              [self.source], strict=bool(t.length), clip_lengths=[t.length] if clip is not None else [])
             out.append(q)
         return out
 
@@ -167,7 +167,7 @@ def reference(q: Query) -> Reference | None:
                     and not (t & VARIANTS) - asked and want_artist & tokens(artist))
 
     lengths: list[int] = []
-    clips, bpm, sources = [], None, []
+    clips, clip_lengths, bpm, sources = [], [], None, []
 
     # Deezer: lengths, BPM, 30s previews
     try:
@@ -178,6 +178,7 @@ def reference(q: Query) -> Reference | None:
             lengths.append(t["duration"])
             if t.get("preview") and len(clips) < 4 and (c := _safe(lambda: clip_from_preview(t["preview"]))) is not None:
                 clips.append(c)
+                clip_lengths.append(t["duration"])
                 bpm = bpm or _safe(lambda: _http.get(f"https://api.deezer.com/track/{t['id']}", timeout=10)
                                    .json().get("bpm")) or None
         if lengths:
@@ -208,6 +209,7 @@ def reference(q: Query) -> Reference | None:
                 url = (t.get("file") or {}).get("mp3-128")
                 if url and (c := clip_from_stream(url, t["duration"])) is not None:
                     clips.append(c)
+                    clip_lengths.append(round(t["duration"]))
                 sources.append("Bandcamp")
                 break
 
@@ -215,4 +217,4 @@ def reference(q: Query) -> Reference | None:
     for l in sorted(lengths):
         if not uniq or l - uniq[-1] > 3:
             uniq.append(l)
-    return Reference(uniq, clips, bpm, sources) if (uniq or clips) else None
+    return Reference(uniq, clips, bpm, sources, clip_lengths=clip_lengths) if (uniq or clips) else None

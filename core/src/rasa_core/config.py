@@ -34,8 +34,10 @@ class Settings:
     # 320k MP3 copies for players without FLAC/AIFF support (old CDJs)
     lq_dir: str = str(Path.home() / "Music" / "rasa" / "LQ")
     make_lq: bool = False
-    # Soulseek, via slskd
-    slskd_url: str = "http://127.0.0.1:5030"
+    # Soulseek, via slskd (password lives in the macOS Keychain, not here)
+    soulseek_username: str = ""
+    slskd_url: str = "http://127.0.0.1:5130"   # not slskd's default 5030, so a separate slskd can coexist
+    listen_port: int = 50300                   # incoming peer connections
     slskd_api_key: str = ""
     slskd_downloads: str = field(default_factory=lambda: str(app_dir() / "slskd" / "downloads"))
     # Sharing (the HQ folder by default)

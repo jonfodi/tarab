@@ -15,7 +15,9 @@ import sys
 import time
 from pathlib import Path
 
-from . import audio, library, sources
+import getpass
+
+from . import audio, daemon, library, sources
 from .audio import Tier
 from .config import Settings
 from .events import Event
@@ -186,6 +188,46 @@ def cmd_config(args):
         print(f"  {k} = {'***' if 'key' in k and v else v}")
 
 
+def cmd_login(args):
+    s = Settings.load()
+    username = args.username or input("Soulseek username (a new name creates an account): ").strip()
+    password = getpass.getpass(f"password for {username}: ")
+    daemon.save_login(username, password)
+    s.soulseek_username = username
+    s.save()
+    print(f"saved {username} (password in the macOS Keychain)")
+    if daemon.status(s).running:
+        daemon.stop()
+        _start(s)
+
+
+def _start(s: Settings) -> None:
+    daemon.start(s)
+    print("starting slskd…", flush=True)
+    st = daemon.wait_ready(s)
+    if st.logged_in:
+        print(f"✓ logged in to Soulseek as {s.soulseek_username}")
+    else:
+        print(f"✗ not logged in ({st.error or st.state or 'slskd exited'}); log: {daemon.log_path()}")
+
+
+def cmd_daemon(args):
+    s = Settings.load()
+    if args.action == "install":
+        print(f"slskd: {daemon.install()}")
+    elif args.action == "start":
+        _start(s)
+    elif args.action == "stop":
+        print("stopped" if daemon.stop() else "not running")
+    elif args.action == "restart":
+        daemon.stop()
+        _start(s)
+    else:
+        st = daemon.status(s)
+        print(f"running: {st.running} (pid {st.pid})  logged in: {st.logged_in}  state: {st.state or '-'}"
+              + (f"  error: {st.error}" if st.error else ""))
+
+
 def main(argv: list[str] | None = None):
     ap = argparse.ArgumentParser(prog="rasa", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -234,6 +276,14 @@ def main(argv: list[str] | None = None):
     c = sub.add_parser("config", help="show or change settings: rasa config --set hq_dir=~/Music/HQ")
     c.add_argument("--set", nargs="*")
     c.set_defaults(fn=cmd_config)
+
+    lg = sub.add_parser("login", help="set the Soulseek account (password stored in the macOS Keychain)")
+    lg.add_argument("username", nargs="?")
+    lg.set_defaults(fn=cmd_login)
+
+    d = sub.add_parser("daemon", help="manage the bundled slskd: install/start/stop/restart/status")
+    d.add_argument("action", choices=["install", "start", "stop", "restart", "status"])
+    d.set_defaults(fn=cmd_daemon)
 
     args = ap.parse_args(argv)
     args.fn(args)

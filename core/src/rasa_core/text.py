@@ -17,7 +17,8 @@ STOP = {"the", "a", "and", "feat", "ft", "featuring", "original", "mix", "extend
 
 # Versions you only get if you ask for them (the word must appear in your query).
 VARIANTS = {"remix", "rmx", "bootleg", "edit", "radio", "acapella", "acappella", "instrumental",
-            "live", "karaoke", "cover", "rework", "mashup", "vip", "dub", "reprise", "remake", "sped", "slowed"}
+            "live", "karaoke", "cover", "rework", "mashup", "vip", "dub", "reprise", "remake", "sped", "slowed",
+            "mixed"}
 
 # Words that mark a bracketed "(Someone's Overdub)" / "[XYZ Mix]" tag as a version name.
 VERSION_WORDS = {"mix", "dub", "edit", "remix", "rmx", "version", "rework", "overdub", "vip", "bootleg", "remaster"}

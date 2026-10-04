@@ -71,6 +71,11 @@ class _Got:
     cand: Candidate
 
 
+def _rank(g: _Got) -> tuple:
+    """Prefer the right track over a better-sounding maybe-wrong one."""
+    return (g.verdict != Verdict.UNSURE, g.tier)
+
+
 class Fetcher:
     def __init__(self, settings: Settings, slskd: Slskd, state: State, sink: Sink = null_sink,
                  lookup: Callable[[Query], Reference | None] = sources.reference):
@@ -175,7 +180,7 @@ class Fetcher:
         best: _Got | None = None
         attempts = 0
         for i, c in enumerate(cands):
-            if attempts >= self.s.max_attempts or (best and best.tier >= c.tier):
+            if attempts >= self.s.max_attempts or (best and best.tier >= c.tier and best.verdict != Verdict.UNSURE):
                 break
             attempts += 1
             self._emit(q, "try", f"try {attempts}: {c.describe()}", candidate=c.as_dict())
@@ -206,13 +211,14 @@ class Fetcher:
             cliff_s = f"cutoff {cliff / 1000:.1f}kHz" if cliff else "no lowpass"
             self._emit(q, "quality", f"{'verified' if tier == claimed else 'claims ' + claimed.label + ' but is'} "
                        f"{tier.label} ({cliff_s})", claimed=claimed.label, verified=tier.label, cliff=cliff)
-            if (tier >= self.s.min_tier or opts.allow_low) and (best is None or tier > best.tier):
+            got = _Got(path, tier, verdict, note, c)
+            if (tier >= self.s.min_tier or opts.allow_low) and (best is None or _rank(got) > _rank(best)):
                 if best:
                     best.path.unlink(missing_ok=True)
-                best = _Got(path, tier, verdict, note, c)
+                best = got
             else:
                 path.unlink(missing_ok=True)
-            if tier == c.tier:
+            if tier == c.tier and verdict != Verdict.UNSURE:
                 break
         return best
 

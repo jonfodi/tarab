@@ -53,3 +53,14 @@ def test_pinned_length_is_strict(audio_dir):
 
 def test_no_reference_is_unknown(tmp_path):
     assert identity.check(tmp_path / "x.flac", None)[0] == Verdict.UNKNOWN
+
+
+@needs_ffmpeg
+def test_low_match_on_a_different_length_is_an_edit_not_a_fake(audio_dir):
+    clip = identity.features(audio.decode(audio_dir / "master_a.flac", sr=identity.SR, ss=60, t=30))
+    # clip from the 150s version; master_b is 150s too -> same length, different music -> wrong (mislabeled)
+    ref = Reference([150], [clip], None, ["test"], clip_lengths=[150])
+    assert identity.check(audio_dir / "master_b.flac", ref)[0] == Verdict.WRONG
+    # if the clip came from a 300s version, a 150s file that doesn't contain it is just another edit
+    ref = Reference([150, 300], [clip], None, ["test"], clip_lengths=[300])
+    assert identity.check(audio_dir / "master_b.flac", ref)[0] == Verdict.UNSURE
