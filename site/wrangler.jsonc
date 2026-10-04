@@ -1,0 +1,12 @@
+// tarab.top: a static page served as a Cloudflare Worker with assets.
+// Deploy from this folder: npx wrangler deploy
+{
+  "name": "tarab",
+  "compatibility_date": "2026-10-01",
+  "assets": { "directory": "./public" },
+  "workers_dev": false,
+  "routes": [
+    { "pattern": "tarab.top", "custom_domain": true },
+    { "pattern": "www.tarab.top", "custom_domain": true }
+  ]
+}

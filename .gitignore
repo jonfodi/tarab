@@ -9,3 +9,4 @@ app/src-tauri/target/
 .DS_Store
 vendor/
 build/
+.wrangler/
