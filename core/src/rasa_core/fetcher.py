@@ -179,9 +179,12 @@ class Fetcher:
     def _download_best(self, q: Query, cands: list[Candidate], ref: Reference | None, opts: Options) -> _Got | None:
         best: _Got | None = None
         attempts = 0
+        failed_peers: set[str] = set()   # refused/stalled on this track: don't try their other copies
         for i, c in enumerate(cands):
             if attempts >= self.s.max_attempts or (best and best.tier >= c.tier and best.verdict != Verdict.UNSURE):
                 break
+            if c.username in failed_peers:
+                continue
             attempts += 1
             self._emit(q, "try", f"try {attempts}: {c.describe()}", candidate=c.as_dict())
             rest = [o for o in cands[i + 1:] if o.username != c.username]
@@ -191,11 +194,13 @@ class Fetcher:
                                       park=not rest and best is None)
             except SlskdError as e:
                 self._reject(q, c, f"refused: {e}", strike=True)
+                failed_peers.add(c.username)
                 continue
             except requests.RequestException as e:
                 self._reject(q, c, f"slskd error: {e}")
                 continue
             if not path:
+                failed_peers.add(c.username)
                 continue
 
             verdict, note = check(path, ref) if ref else (Verdict.UNKNOWN, "no reference data")

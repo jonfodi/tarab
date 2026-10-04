@@ -162,12 +162,7 @@ def cmd_import(args):
     s, state = Settings.load(), State()
     folder = Path(args.folder).expanduser() if args.folder else s.hq
     n = 0
-    for p in sorted(folder.iterdir()):
-        if p.suffix.lower().lstrip(".") not in audio.AUDIO_EXT or " - " not in p.stem:
-            continue
-        q = Query.parse(p.stem)
-        claimed, tier, _ = audio.check_quality(p) if args.verify else (None, audio.claimed_tier(p), None)
-        state.put_track(q.key, q.artist, q.title, p, tier, Verdict.UNKNOWN.value, "imported", audio.duration(p), "")
+    for p, tier in library.import_folder(folder, state, args.verify):
         n += 1
         print(f"  + {p.name} ({tier.label})")
     print(f"\nindexed {n} tracks from {folder}")
@@ -276,6 +271,13 @@ def main(argv: list[str] | None = None):
     c = sub.add_parser("config", help="show or change settings: rasa config --set hq_dir=~/Music/HQ")
     c.add_argument("--set", nargs="*")
     c.set_defaults(fn=cmd_config)
+
+    sv = sub.add_parser("serve", help="run the local API for the desktop app")
+    sv.add_argument("--port", type=int, default=0)
+    sv.add_argument("--no-slskd", action="store_true", help="don't start slskd")
+    sv.add_argument("--watch-stdin", action="store_true", help="exit when stdin closes (used by the app)")
+    sv.set_defaults(fn=lambda a: __import__("rasa_core.server", fromlist=["serve"]).serve(
+        a.port, not a.no_slskd, a.watch_stdin))
 
     lg = sub.add_parser("login", help="set the Soulseek account (password stored in the macOS Keychain)")
     lg.add_argument("username", nargs="?")

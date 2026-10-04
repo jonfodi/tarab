@@ -98,3 +98,15 @@ def export_lq(src: Path, lq: Path, force: bool = False) -> tuple[Path, str]:
     tmp.replace(dest)
     note = f"encoded 320k from {c}" + ("" if c in LOSSLESS_CODECS else " (lossy source: not a true 320)")
     return dest, note
+
+
+def import_folder(folder: Path, state, verify: bool = False):
+    """Index existing "Artist - Title.ext" files so they count as owned. Yields (path, tier)."""
+    from .identity import Verdict
+    for p in sorted(folder.iterdir()):
+        if p.suffix.lower().lstrip(".") not in AUDIO_EXT or " - " not in p.stem:
+            continue
+        q = Query.parse(p.stem)
+        tier = audio.check_quality(p)[1] if verify else audio.claimed_tier(p)
+        state.put_track(q.key, q.artist, q.title, p, tier, Verdict.UNKNOWN.value, "imported", audio.duration(p), "")
+        yield p, tier

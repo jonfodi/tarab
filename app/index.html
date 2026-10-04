@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>rasa</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <header>
+      <strong>rasa</strong>
+      <nav id="tabs">
+        <button data-tab="get" class="on">Get</button>
+        <button data-tab="listen">Listen <span id="listen-count"></span></button>
+        <button data-tab="wishlist">Wishlist</button>
+        <button data-tab="library">Library</button>
+        <button data-tab="settings">Settings</button>
+      </nav>
+      <span id="conn" class="pill">starting…</span>
+    </header>
+    <main>
+      <section id="get" class="tab on">
+        <div class="row">
+          <textarea id="tracks" rows="6" placeholder="One track per line:  Artist - Title
+Optional: [CATALOG] and | m:ss to pin the exact version, e.g.
+Repair - Page-R [SUS006] | 6:51"></textarea>
+        </div>
+        <div class="row controls">
+          <label><input type="checkbox" id="title-first" /> lines are Title - Artist</label>
+          <label><input type="checkbox" id="upgrade" /> upgrade non-lossless copies</label>
+          <button id="get-tracks" class="primary">Get tracks</button>
+        </div>
+        <div class="row controls">
+          <input id="release" placeholder="Bandcamp album link, or Artist - Release [CAT]" />
+          <button id="get-release">Get release</button>
+        </div>
+        <div class="row controls">
+          <h3>Queue</h3><span class="grow"></span><button id="clear-done">Clear finished</button>
+        </div>
+        <ul id="jobs" class="list"></ul>
+      </section>
+
+      <section id="listen" class="tab">
+        <p class="hint">Downloaded, but rasa couldn't confirm it's the right track or version (no official audio to
+          compare against, or it sounds like another edit). Give it a listen.</p>
+        <ul id="listen-list" class="list"></ul>
+      </section>
+
+      <section id="wishlist" class="tab">
+        <p class="hint">Tracks nobody is sharing in good quality right now. rasa checks again every 20 minutes
+          while it's open. Tracks that aren't found are added here automatically.</p>
+        <div class="row controls">
+          <input id="wish-line" placeholder="Artist - Title | m:ss" /><button id="wish-add">Add</button>
+        </div>
+        <ul id="wish-list" class="list"></ul>
+      </section>
+
+      <section id="library" class="tab">
+        <div class="row controls"><input id="lib-filter" placeholder="Filter" /><span id="lib-count"></span></div>
+        <table id="lib"><thead><tr><th>Artist</th><th>Title</th><th>Quality</th><th>Identity</th><th>Length</th></tr></thead><tbody></tbody></table>
+      </section>
+
+      <section id="settings" class="tab">
+        <form id="settings-form"></form>
+        <div class="row controls">
+          <button id="save-settings" class="primary">Save</button>
+          <button id="make-lq">Make MP3 copies of the whole library now</button>
+          <button id="import">Index existing music folder</button>
+          <span id="settings-msg"></span>
+        </div>
+      </section>
+    </main>
+
+    <dialog id="setup">
+      <form id="setup-form" method="dialog">
+        <h2>Set up rasa</h2>
+        <p>rasa downloads from <b>Soulseek</b>, a peer-to-peer network. Log in with your Soulseek account. New to
+          Soulseek? Pick any unused username and a password: the first login creates the account.</p>
+        <p class="hint">If you also use SoulseekQt or Nicotine+ with the same account, close them while rasa runs
+          (an account can only be logged in once).</p>
+        <label>Username <input name="username" required autocomplete="off" /></label>
+        <label>Password <input name="password" type="password" required /></label>
+        <label>Music folder <input name="hq_dir" /></label>
+        <label><input type="checkbox" name="make_lq" /> I play on old CDJs: also make 320k MP3 copies</label>
+        <label>MP3 folder <input name="lq_dir" /></label>
+        <label><input type="checkbox" name="share_hq" checked /> Share my rasa music folder on Soulseek
+          (recommended)</label>
+        <p class="hint">Soulseek runs on sharing: everything comes from other users' computers. Many users let
+          sharers skip their queues and refuse people who share nothing, so sharing makes your downloads faster.
+          Other users can download the files in your music folder (never change or delete them). Only tracks that
+          passed rasa's checks are in that folder. You can turn this off any time.</p>
+        <div class="row controls"><span id="setup-msg"></span><span class="grow"></span>
+          <button id="setup-go" class="primary" value="go">Connect</button></div>
+      </form>
+    </dialog>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

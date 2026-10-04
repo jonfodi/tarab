@@ -1,0 +1,32 @@
+/* Functional placeholder styling; real design comes later. */
+:root { color-scheme: dark; --bg: #121212; --panel: #1c1c1c; --line: #2c2c2c; --text: #e6e6e6; --dim: #8a8a8a;
+        --ok: #5bd17a; --warn: #e3b341; --bad: #ef5d5d; --accent: #7aa2f7; font: 13px/1.45 -apple-system, sans-serif; }
+body { margin: 0; background: var(--bg); color: var(--text); }
+header { display: flex; align-items: center; gap: 16px; padding: 10px 16px; border-bottom: 1px solid var(--line); }
+nav button { background: none; border: 0; color: var(--dim); padding: 6px 10px; cursor: pointer; font: inherit; }
+nav button.on { color: var(--text); border-bottom: 2px solid var(--accent); }
+.pill { margin-left: auto; padding: 3px 10px; border-radius: 99px; background: var(--panel); color: var(--dim); }
+.pill.ok { color: var(--ok); } .pill.bad { color: var(--bad); }
+main { padding: 16px; }
+.tab { display: none; } .tab.on { display: block; }
+.row { margin-bottom: 10px; } .controls { display: flex; gap: 10px; align-items: center; } .grow { flex: 1; }
+textarea, input:not([type=checkbox]) { width: 100%; box-sizing: border-box; background: var(--panel); color: var(--text);
+  border: 1px solid var(--line); border-radius: 6px; padding: 8px; font: 12px ui-monospace, monospace; }
+.controls input:not([type=checkbox]) { flex: 1; }
+button { background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 7px 12px;
+  cursor: pointer; font: inherit; white-space: nowrap; }
+button.primary { background: var(--accent); color: #111; border-color: var(--accent); }
+button:disabled { opacity: .5; cursor: default; }
+h3 { margin: 6px 0; font-size: 13px; color: var(--dim); text-transform: uppercase; letter-spacing: .05em; }
+.list { list-style: none; margin: 0; padding: 0; }
+.list li { display: grid; grid-template-columns: 22px 1fr auto; gap: 8px; padding: 8px 6px; border-bottom: 1px solid var(--line); }
+.list .q { font-weight: 600; } .list .msg { color: var(--dim); font-size: 12px; grid-column: 2; word-break: break-all; }
+.s-ok, .s-already { color: var(--ok); } .s-queued, .s-running { color: var(--accent); }
+.s-not_found, .s-failed, .s-low_only, .s-error { color: var(--bad); } .listen { color: var(--warn); }
+.hint { color: var(--dim); font-size: 12px; max-width: 70ch; }
+table { width: 100%; border-collapse: collapse; } td, th { text-align: left; padding: 6px; border-bottom: 1px solid var(--line); }
+th { color: var(--dim); font-weight: 500; }
+dialog { background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 10px; width: 560px; }
+dialog label { display: block; margin: 8px 0; } dialog label input:not([type=checkbox]) { margin-top: 4px; }
+#settings-form label { display: grid; grid-template-columns: 220px 1fr; gap: 10px; align-items: center; margin-bottom: 6px; }
+a { color: var(--accent); }

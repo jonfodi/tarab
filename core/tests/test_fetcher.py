@@ -169,3 +169,14 @@ def test_lq_copy(env, audio_dir):
     run(s, state, slskd, "Artist - Track A")
     lq = s.lq / "Artist - Track A.mp3"
     assert lq.exists() and audio.claimed_tier(lq) == audio.Tier.T320
+
+
+@needs_ffmpeg
+def test_banning_peer_isnt_tried_twice(env, audio_dir):
+    s, state = env
+    slskd = FakeSlskd(s.downloads, {
+        ("banner", r"x\Artist - Track A.flac"): (audio_dir / "master_a.flac", "rejected"),
+        ("banner", r"y\Artist - Track A.flac"): (audio_dir / "master_a.flac", "rejected"),
+        ("ok", r"z\Artist - Track A.mp3"): (audio_dir / "t320.mp3", "ok")})
+    run(s, state, slskd, "Artist - Track A")
+    assert [u for u, _ in slskd.enqueued] == ["banner", "ok"]

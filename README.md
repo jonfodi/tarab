@@ -10,10 +10,21 @@ Free and open source. macOS.
 
 - **Phase 1 (done):** `core/`: the engine as a Python package with tests and a CLI.
 - **Phase 2 (done):** slskd runs natively (no Docker), managed by rasa; login in the macOS Keychain.
-- **Phase 3:** Tauri desktop app.
+- **Phase 3 (working, unstyled):** Tauri desktop app driving the engine over a local API.
 - **Phase 4:** packaging, signing, notarization, auto-update.
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+## App (development)
+
+Needs Rust, pnpm, uv and ffmpeg.
+
+```sh
+cd app && pnpm install && pnpm tauri dev
+```
+
+The app starts the engine (`uv run rasa serve` in `core/`), which installs and runs slskd. First launch asks for
+your Soulseek login, music folder and sharing preference.
 
 ## Core (CLI)
 
