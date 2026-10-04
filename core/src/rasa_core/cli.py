@@ -17,7 +17,7 @@ from pathlib import Path
 
 import getpass
 
-from . import audio, daemon, library, sources
+from . import audio, daemon, library, server, sources
 from .audio import Tier
 from .config import Settings
 from .events import Event
@@ -276,8 +276,7 @@ def main(argv: list[str] | None = None):
     sv.add_argument("--port", type=int, default=0)
     sv.add_argument("--no-slskd", action="store_true", help="don't start slskd")
     sv.add_argument("--watch-stdin", action="store_true", help="exit when stdin closes (used by the app)")
-    sv.set_defaults(fn=lambda a: __import__("rasa_core.server", fromlist=["serve"]).serve(
-        a.port, not a.no_slskd, a.watch_stdin))
+    sv.set_defaults(fn=lambda a: server.serve(a.port, not a.no_slskd, a.watch_stdin))
 
     lg = sub.add_parser("login", help="set the Soulseek account (password stored in the macOS Keychain)")
     lg.add_argument("username", nargs="?")

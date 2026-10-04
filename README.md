@@ -11,9 +11,10 @@ Free and open source. macOS.
 - **Phase 1 (done):** `core/`: the engine as a Python package with tests and a CLI.
 - **Phase 2 (done):** slskd runs natively (no Docker), managed by rasa; login in the macOS Keychain.
 - **Phase 3 (working, unstyled):** Tauri desktop app driving the engine over a local API.
-- **Phase 4:** packaging, signing, notarization, auto-update.
+- **Phase 4 (done for beta):** self-contained `rasa.app` + DMG (ad-hoc signed). Not yet: Developer ID signing/notarization, auto-update, Intel build.
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/INSTALL.md](docs/INSTALL.md) (for users) and
+[docs/RELEASING.md](docs/RELEASING.md).
 
 ## App (development)
 

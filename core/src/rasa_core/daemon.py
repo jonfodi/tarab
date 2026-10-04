@@ -53,7 +53,7 @@ def slskd_dir() -> Path:
 
 def binary() -> Path | None:
     """The bundled slskd when running as the app, else the one `install()` downloaded."""
-    if b := bundled_tool("slskd"):
+    if b := bundled_tool("slskd/slskd") or bundled_tool("slskd"):
         return Path(b)
     p = app_dir() / "bin" / f"slskd-{SLSKD_VERSION}" / "slskd"
     return p if p.exists() else None

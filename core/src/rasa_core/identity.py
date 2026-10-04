@@ -35,17 +35,19 @@ class Reference:
     sources: list[str] = field(default_factory=list)
     strict: bool = False   # the user pinned the length: any other length is wrong, not "unsure"
     clip_lengths: list[int | None] = field(default_factory=list)   # length of the version each clip came from
+    warning: str = ""      # e.g. official audio existed but couldn't be fetched
 
     def describe(self) -> str:
         ls = ", ".join(fmt_len(l) for l in self.lengths) or "?"
         bpm = f" · {self.bpm:g} BPM" if self.bpm else ""
         clips = f" · {len(self.clips)} audio clip{'s' * (len(self.clips) > 1)}" if self.clips else ""
-        return f"{ls}{bpm}{clips} ({', '.join(self.sources) or 'none'})"
+        warn = f" ⚠ {self.warning}" if self.warning else ""
+        return f"{ls}{bpm}{clips} ({', '.join(self.sources) or 'none'}){warn}"
 
     def pinned(self, length: int) -> Reference:
         """Same reference, but only `length` is acceptable."""
         return Reference([length], self.clips, self.bpm, [*self.sources, "you"], strict=True,
-                         clip_lengths=self.clip_lengths)
+                         clip_lengths=self.clip_lengths, warning=self.warning)
 
 
 def features(x: np.ndarray, n: int = 4096, hop: int = 1024) -> np.ndarray:
@@ -63,17 +65,52 @@ def features(x: np.ndarray, n: int = 4096, hop: int = 1024) -> np.ndarray:
     return c / (np.linalg.norm(c, axis=1, keepdims=True) + 1e-9)
 
 
+def _download(url: str) -> Path:
+    """Fetch official audio with Python's HTTPS stack. ffmpeg is never given URLs: the bundled static build has no
+    trusted certificates on macOS, so it would fail and the identity check would silently degrade."""
+    import tempfile
+
+    import requests
+    r = requests.get(url, timeout=30, headers={"User-Agent": "Mozilla/5.0"})
+    r.raise_for_status()
+    fd, name = tempfile.mkstemp(suffix=".mp3", prefix="rasa-ref-")
+    with open(fd, "wb") as fh:
+        fh.write(r.content)
+    return Path(name)
+
+
+def _local(src: str) -> tuple[Path, bool]:
+    if src.startswith(("http://", "https://")):
+        return _download(src), True
+    return Path(src), False
+
+
 def clip_from_preview(url_or_path: str) -> np.ndarray:
-    """A 30s preview, minus the 3s fades at each end."""
-    x = audio.decode(url_or_path, sr=SR)
+    """A 30s preview, minus the 3s fades at each end. Raises if the audio can't be fetched or decoded."""
+    path, temp = _local(url_or_path)
+    try:
+        x = audio.decode(path, sr=SR)
+    finally:
+        if temp:
+            path.unlink(missing_ok=True)
+    if len(x) < 5 * SR:
+        raise ValueError("preview too short or empty")
     return features(x[3 * SR: -3 * SR] if len(x) > 12 * SR else x)
 
 
 def clip_from_stream(url: str, length: float) -> np.ndarray | None:
-    """30s from the middle of a full-length stream."""
+    """30s from the middle of a full-length stream (Bandcamp). None if it can't be fetched."""
     try:
-        return features(audio.decode(url, sr=SR, ss=max(0.0, length / 2 - 15), t=30))
-    except Exception:
+        path, temp = _local(url)
+        try:
+            x = audio.decode(path, sr=SR, ss=max(0.0, length / 2 - 15), t=30)
+        finally:
+            if temp:
+                path.unlink(missing_ok=True)
+        return features(x) if len(x) >= 5 * SR else None
+    except Exception as e:
+        import sys
+        print(f"rasa: couldn't fetch reference audio ({e})", file=sys.stderr)
         return None
 
 

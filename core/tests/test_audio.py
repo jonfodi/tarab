@@ -64,3 +64,26 @@ def test_low_match_on_a_different_length_is_an_edit_not_a_fake(audio_dir):
     # if the clip came from a 300s version, a 150s file that doesn't contain it is just another edit
     ref = Reference([150, 300], [clip], None, ["test"], clip_lengths=[300])
     assert identity.check(audio_dir / "master_b.flac", ref)[0] == Verdict.UNSURE
+
+
+@needs_ffmpeg
+def test_reference_audio_is_downloaded_by_python_not_ffmpeg(audio_dir, monkeypatch):
+    """The bundled ffmpeg can't verify TLS certificates; URLs must never reach it."""
+    import functools
+    import http.server
+    import threading
+
+    handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(audio_dir))
+    httpd = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
+    threading.Thread(target=httpd.serve_forever, daemon=True).start()
+    real_decode = audio.decode
+
+    def guarded(src, *a, **k):
+        assert not str(src).startswith("http"), "ffmpeg was handed a URL"
+        return real_decode(src, *a, **k)
+
+    monkeypatch.setattr(audio, "decode", guarded)
+    url = f"http://127.0.0.1:{httpd.server_address[1]}/t320.mp3"
+    assert len(identity.clip_from_preview(url)) > 0
+    assert identity.clip_from_stream(url, 150) is not None
+    httpd.shutdown()

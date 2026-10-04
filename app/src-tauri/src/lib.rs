@@ -2,7 +2,9 @@
 //! and stops it (and the slskd it manages) when the app quits.
 
 use serde::{Deserialize, Serialize};
+use std::fs::OpenOptions;
 use std::io::{BufRead, BufReader};
+use std::path::PathBuf;
 use std::process::{Child, Command, Stdio};
 use std::sync::Mutex;
 use tauri::{Manager, RunEvent, State};
@@ -21,14 +23,14 @@ struct Engine {
 }
 
 /// How to launch the engine:
-/// - packaged app: the bundled `rasa-engine` next to the executable (phase 4)
+/// - packaged app: Resources/engine/rasa-engine, with bundled slskd + ffmpeg in Resources/bin
 /// - development: `uv run rasa serve` in ../core (override with RASA_ENGINE_CMD)
-fn engine_command() -> Command {
-    if let Ok(exe) = std::env::current_exe() {
-        let bundled = exe.with_file_name("rasa-engine");
+fn engine_command(resources: Option<PathBuf>) -> Command {
+    if let Some(res) = resources {
+        let bundled = res.join("engine").join("rasa-engine");
         if bundled.exists() {
             let mut c = Command::new(bundled);
-            c.args(["serve", "--watch-stdin"]);
+            c.args(["serve", "--watch-stdin"]).env("RASA_BIN_DIR", res.join("bin"));
             return c;
         }
     }
@@ -44,11 +46,22 @@ fn engine_command() -> Command {
     c
 }
 
-fn start_engine(engine: &Engine) -> Result<Backend, String> {
-    let mut child = engine_command()
+/// Engine stderr goes to ~/Library/Logs/rasa/engine.log (a packaged app has no terminal).
+fn engine_log() -> Stdio {
+    let dir = PathBuf::from(std::env::var("HOME").unwrap_or_default()).join("Library/Logs/rasa");
+    let _ = std::fs::create_dir_all(&dir);
+    match OpenOptions::new().create(true).append(true).open(dir.join("engine.log")) {
+        Ok(f) => Stdio::from(f),
+        Err(_) => Stdio::inherit(),
+    }
+}
+
+fn start_engine(engine: &Engine, resources: Option<PathBuf>) -> Result<Backend, String> {
+    let stderr = if cfg!(debug_assertions) { Stdio::inherit() } else { engine_log() };
+    let mut child = engine_command(resources)
         .stdin(Stdio::piped()) // the engine exits when this pipe closes (if we crash)
         .stdout(Stdio::piped())
-        .stderr(Stdio::inherit())
+        .stderr(stderr)
         .spawn()
         .map_err(|e| format!("couldn't start the rasa engine: {e}"))?;
     let stdout = child.stdout.take().ok_or("engine has no stdout")?;
@@ -95,9 +108,10 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![backend])
         .setup(|app| {
             let handle = app.handle().clone();
+            let resources = app.path().resource_dir().ok();
             std::thread::spawn(move || {
                 let engine = handle.state::<Engine>();
-                match start_engine(&engine) {
+                match start_engine(&engine, resources) {
                     Ok(b) => *engine.backend.lock().unwrap() = Some(b),
                     Err(e) => *engine.error.lock().unwrap() = Some(e),
                 }

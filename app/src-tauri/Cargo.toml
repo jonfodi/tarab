@@ -16,3 +16,11 @@ tauri-build = { version = "2", features = [] }
 tauri = { version = "2", features = [] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+
+# macOS 27's dyld rejects dylibs stripped by the current toolchain ("mis-aligned LINKEDIT string pool"),
+# which breaks proc-macros in release builds. Don't strip; the app binary is small either way.
+[profile.release]
+strip = false
+
+[profile.release.build-override]
+strip = false

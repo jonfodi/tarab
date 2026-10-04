@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>tarab</title>
+<meta name="description" content="change through sound. tarab is a free, open-source app for finding the music you love. join the waitlist.">
+<meta name="theme-color" content="#140b08">
+<meta property="og:title" content="tarab">
+<meta property="og:description" content="change through sound.">
+<meta property="og:url" content="https://tarab.top">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23140b08'/%3E%3Ccircle cx='27' cy='30' r='14' fill='%23ffb266' fill-opacity='.55'/%3E%3Ccircle cx='38' cy='36' r='12' fill='%23e86e8c' fill-opacity='.55'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,300;1,400&family=DM+Mono:wght@400&display=swap">
+<style>
+/* One screen, no scroll. Film-like circles fill it; one line and the waitlist sit in the middle; Mission opens over it. */
+:root {
+  --night: #140b08;
+  --paper: #f3ebe0;
+  --paper-dim: rgba(243, 235, 224, 0.62);
+  --paper-faint: rgba(243, 235, 224, 0.28);
+  --ember: #ffb37a;
+  --veil: rgba(20, 11, 8, 0.72);
+  --serif: "Cormorant Garamond", "Cormorant", Garamond, "Times New Roman", serif;
+  --mono: "DM Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  color-scheme: dark;
+}
+html, body { height: 100%; margin: 0; overflow: hidden; background: var(--night); color: var(--paper); }
+body { font-family: var(--serif); -webkit-font-smoothing: antialiased; }
+
+[hidden] { display: none !important; }
+canvas.stage { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+
+.nav {
+  position: fixed; inset: 0 0 auto 0; z-index: 3;
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: calc(env(safe-area-inset-top, 0px) + 22px) clamp(16px, 4vw, 40px) 0;
+}
+.wordmark { font-family: var(--serif); font-style: italic; font-weight: 400; font-size: 1.6rem; letter-spacing: 0.01em; color: var(--paper); text-decoration: none; }
+.quiet {
+  font: 400 0.72rem/1 var(--mono); letter-spacing: 0.14em; text-transform: lowercase;
+  color: var(--paper-dim); background: none; border: 0; padding: 6px 0; cursor: pointer;
+  transition: color 0.4s ease;
+}
+.quiet:hover, .quiet[aria-pressed="true"] { color: var(--paper); }
+button:focus-visible, a:focus-visible, input:focus-visible { outline: 1px solid var(--ember); outline-offset: 4px; }
+
+.center {
+  position: fixed; inset: 0; z-index: 2; pointer-events: none;
+  display: grid; place-items: center; text-align: center; padding-inline: 16px;
+}
+.center::before { /* a soft dusk behind the line so it reads over any brightness */
+  content: ""; position: absolute; left: 50%; top: 50%; width: min(900px, 110vw); height: 380px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(closest-side, rgba(20,11,8,0.5), rgba(20,11,8,0));
+}
+.line-wrap { position: relative; display: grid; gap: 34px; justify-items: center; width: 100%; }
+h1 {
+  margin: 0; font-family: var(--serif); font-style: italic; font-weight: 300;
+  font-size: clamp(2.6rem, 7.4vw, 6.4rem); line-height: 1; letter-spacing: -0.01em;
+  text-wrap: balance; text-shadow: 0 0 40px rgba(20,11,8,0.6);
+  animation: arrive 2.4s ease both 0.4s;
+}
+
+.waitlist {
+  pointer-events: auto; display: flex; align-items: baseline; gap: 14px;
+  width: min(380px, 100%); border-bottom: 1px solid var(--paper-faint);
+  transition: border-color 0.4s ease;
+  animation: arrive 2s ease both 1.6s;
+}
+.waitlist:focus-within { border-color: var(--paper-dim); }
+.waitlist input {
+  flex: 1; min-width: 0; background: none; border: 0; outline: none; color: var(--paper);
+  font: 400 0.8rem/1 var(--mono); letter-spacing: 0.06em; padding: 10px 0;
+}
+.waitlist input::placeholder { color: var(--paper-faint); }
+.waitlist button { white-space: nowrap; }
+.waitlist button .arrow { display: inline-block; transition: transform 0.4s ease; }
+.waitlist button:hover .arrow { transform: translateX(3px); }
+.status { min-height: 1em; margin-top: -20px; font: 400 0.68rem/1.4 var(--mono); letter-spacing: 0.08em; color: var(--paper-dim); }
+.status.done { color: var(--ember); }
+@keyframes arrive { from { opacity: 0.001; filter: blur(8px); } to { opacity: 1; filter: blur(0); } }
+
+.hud {
+  position: fixed; inset: auto 0 0 0; z-index: 3;
+  display: flex; justify-content: flex-end;
+  padding: 0 clamp(16px, 4vw, 40px) calc(env(safe-area-inset-bottom, 0px) + 20px);
+}
+.listen .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--paper-faint); margin-right: 8px; vertical-align: 1px; transition: background 0.3s; }
+.listen[aria-pressed="true"] .dot { background: var(--ember); box-shadow: 0 0 10px var(--ember); }
+
+/* Mission: opens over the visual, never below it */
+.mission {
+  position: fixed; inset: 0; z-index: 5; overflow-y: auto;
+  background: var(--veil); backdrop-filter: blur(18px) saturate(1.1); -webkit-backdrop-filter: blur(18px) saturate(1.1);
+  opacity: 0; visibility: hidden; transition: opacity 0.7s ease, visibility 0s linear 0.7s;
+}
+.mission.open { opacity: 1; visibility: visible; transition: opacity 0.7s ease; }
+.mission-inner {
+  max-width: 36rem; margin: 0 auto; padding: calc(env(safe-area-inset-top, 0px) + 110px) 16px calc(env(safe-area-inset-bottom, 0px) + 110px);
+  display: grid; gap: 1.1em; font-size: clamp(1.25rem, 2.1vw, 1.5rem); line-height: 1.5; color: var(--paper);
+}
+.mission-inner p { margin: 0; }
+.mission-inner .lede { font-style: italic; font-weight: 300; font-size: 1.55em; line-height: 1.2; text-wrap: balance; margin-bottom: 0.4em; }
+.mission-inner .pull { font-style: italic; color: var(--ember); }
+.mission-inner .sign { font: 400 0.72rem/1.7 var(--mono); letter-spacing: 0.08em; color: var(--paper-dim); margin-top: 1.6em; }
+.close { position: fixed; z-index: 6; top: calc(env(safe-area-inset-top, 0px) + 22px); right: clamp(16px, 4vw, 40px); }
+
+@media (prefers-reduced-motion: reduce) {
+  h1, .waitlist { animation: none; }
+}
+</style>
+</head>
+<body>
+
+<canvas class="stage" id="stage" aria-hidden="true"></canvas>
+
+<nav class="nav" aria-label="Main">
+  <a class="wordmark" href="/">tarab</a>
+  <button type="button" class="quiet" id="open-mission">mission</button>
+</nav>
+
+<main class="center">
+  <div class="line-wrap">
+    <h1>change through sound.</h1>
+    <form class="waitlist" id="waitlist" novalidate>
+      <label for="email" class="sr" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Email</label>
+      <input id="email" name="email" type="email" autocomplete="email" placeholder="your email" required>
+      <button type="submit" class="quiet">join the waitlist <span class="arrow">→</span></button>
+    </form>
+    <p class="status" id="status" role="status" aria-live="polite"></p>
+  </div>
+</main>
+
+<div class="hud">
+  <button type="button" class="quiet listen" id="listen" aria-pressed="false"><span class="dot"></span>listen</button>
+</div>
+
+<section class="mission" id="mission" aria-label="Mission" aria-hidden="true">
+  <button type="button" class="quiet close" id="close-mission">close ✕</button>
+  <div class="mission-inner">
+    <p class="lede">Improving our world starts with improving our inner world.</p>
+    <p>Our thoughts have real effects on the world outside us. In a good mood, we smile. We give others grace. When I'm happy on my bike, I thank people for not opening their doors on me, for letting me pass, for driving kindly. It makes me feel good. It makes them feel good, and makes them want to do it again.</p>
+    <p>This is how love defies physics. <span class="pull">Love is not conserved.</span> One small act in leads to so much positivity out.</p>
+    <p>Music is my key to it. I wake up with music already playing in my head. As a kid playing 3-on-3 hockey, a friend asked me why I was singing. I didn't even know I was.</p>
+    <p>Music lets us feel that love. It keeps us company when we're sad. It gives us the joy of finding something new, and a whole day that feels brighter for it.</p>
+    <p>One song, one dancefloor, one group of people, carrying it out into their lives. That's why I play music for people. That's why I made this.</p>
+    <p class="sign">tarab finds, verifies and files DJ-quality music.<br>free and open source · macOS</p>
+  </div>
+</section>
+
+<script>
+// Where waitlist emails go. Any endpoint that accepts a form POST with an `email` field
+// and answers 2xx on success works (Loops, Formspree, Buttondown, a Cloudflare Function).
+const WAITLIST_ENDPOINT = '';
+
+(() => {
+  const BPM = 118, BEAT = 60 / BPM;
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const T0 = performance.now() / 1000;
+  const clock = () => performance.now() / 1000 - T0;
+  const pulseAt = (t) => { const ph = ((t / BEAT) % 1) * BEAT; return Math.exp(-ph * 7); };
+  const rand = (a, b) => a + Math.random() * (b - a);
+  let audioBoost = 0; // eases toward 1 while sound plays, so the circles answer the music
+
+  const canvas = document.getElementById('stage');
+  const ctx = canvas.getContext('2d');
+  let W = 0, H = 0;
+  function resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = innerWidth; H = innerHeight;
+    canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  addEventListener('resize', resize); resize();
+
+  /* ---------- film: out-of-focus circles that drift, are drawn to each other, and both grow when they touch ---------- */
+  const Film = (() => {
+    const lights = [];
+    const pal = [[255, 178, 102], [255, 132, 96], [255, 210, 160], [232, 110, 140], [140, 190, 220]];
+    const bokeh = pal.map(rgb => {
+      const s = document.createElement('canvas'); s.width = s.height = 128;
+      const g = s.getContext('2d'), c = rgb.join(',');
+      const gr = g.createRadialGradient(64, 64, 0, 64, 64, 62);
+      gr.addColorStop(0, `rgba(${c},0.32)`); gr.addColorStop(0.78, `rgba(${c},0.40)`);
+      gr.addColorStop(0.9, `rgba(${c},0.62)`); gr.addColorStop(1, `rgba(${c},0)`);
+      g.fillStyle = gr; g.fillRect(0, 0, 128, 128); return s;
+    });
+    const grains = Array.from({ length: 5 }, () => {
+      const s = document.createElement('canvas'); s.width = s.height = 180;
+      const g = s.getContext('2d'), img = g.createImageData(180, 180);
+      for (let i = 0; i < img.data.length; i += 4) { const v = Math.random() * 255; img.data[i] = img.data[i + 1] = img.data[i + 2] = v; img.data[i + 3] = 255; }
+      g.putImageData(img, 0, 0); return ctx.createPattern(s, 'repeat');
+    });
+    let lastFrame = -1, lastT = 0;
+    function reset() {
+      const start = clock(); lastT = start; lights.length = 0;
+      for (let i = 0; i < 46; i++) lights.push({
+        x: rand(0, 1), y: rand(0.15, 0.95), r: rand(0.03, 0.14), ci: Math.random() < 0.08 ? 4 : (Math.random() * 4) | 0,
+        vx: 0, vy: 0, pvx: 0, pvy: 0, ph: rand(0, 6.28), beat: Math.random() < 0.4, ready: start + rand(1, 5), glow: 0
+      });
+      for (const L of lights) { L.base = L.r; L.tr = L.r; }
+      lastFrame = -1;
+    }
+    // drift on a slow current, pull toward neighbours; a touch makes both circles grow, then they ease back
+    function interact(t, dt, m) {
+      const sp = reduced ? 0.35 : 1, reach = 0.3 * m;
+      for (const L of lights) {
+        const ang = Math.sin(L.x * 3.1 + t * 0.15) * 2.2 + Math.cos(L.y * 2.7 - t * 0.12) * 2.2 + L.ph;
+        const heavy = Math.max(1, L.r / 0.06);
+        L.pvx += Math.cos(ang) * 0.035 * m * dt / heavy; L.pvy += Math.sin(ang) * 0.035 * m * dt / heavy;
+      }
+      for (let i = 0; i < lights.length; i++) {
+        const a = lights[i];
+        for (let j = i + 1; j < lights.length; j++) {
+          const b = lights[j];
+          const dx = (b.x - a.x) * W, dy = (b.y - a.y) * H, d = Math.hypot(dx, dy) || 1, nx = dx / d, ny = dy / d;
+          if (d < reach) {
+            const f = 0.03 * m * (1 - d / reach) * dt, ma = a.r * a.r, mb = b.r * b.r;
+            a.pvx += nx * f * mb / (ma + mb); a.pvy += ny * f * mb / (ma + mb);
+            b.pvx -= nx * f * ma / (ma + mb); b.pvy -= ny * f * ma / (ma + mb);
+          }
+          if (t > a.ready && t > b.ready && d < (a.r + b.r) * m * 0.5) {
+            for (const L of [a, b]) { L.tr = Math.min(0.2, L.tr * 1.12 + 0.006); L.glow = 1; L.ready = t + 4; }
+            const push = 0.04 * m; a.pvx -= nx * push; a.pvy -= ny * push; b.pvx += nx * push; b.pvy += ny * push;
+          }
+        }
+      }
+      for (const L of lights) {
+        const damp = Math.exp(-0.7 * dt); L.pvx *= damp; L.pvy *= damp;
+        if (L.y < 0.06) L.pvy += (0.06 - L.y) * H * dt; if (L.y > 1) L.pvy -= (L.y - 1) * H * dt;
+        L.vx = L.pvx * sp / W; L.vy = L.pvy * sp / H;
+        L.r += (L.tr - L.r) * Math.min(1, dt * 1.2);
+        L.tr += (L.base - L.tr) * dt / 18;
+        L.glow *= Math.exp(-1.6 * dt);
+      }
+    }
+    function frame(t) {
+      const f = Math.floor(t * 24); if (f === lastFrame) return; lastFrame = f; // 24fps, like film
+      const m = Math.min(W, H), pulse = pulseAt(t) * (reduced ? 0.3 : 1) * (0.75 + 0.5 * audioBoost);
+      const wx = reduced ? 0 : rand(-1.2, 1.2), wy = reduced ? 0 : rand(-0.8, 0.8);
+      const flick = 1 + (reduced ? 0 : rand(-0.035, 0.035));
+      const dt = Math.min(0.1, t - lastT); lastT = t;
+      interact(t, dt, m);
+      ctx.save(); ctx.translate(wx, wy);
+      ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+      ctx.fillStyle = '#140b08'; ctx.fillRect(-4, -4, W + 8, H + 8);
+      // light leak drifting along the left edge
+      const lx = W * (0.1 + 0.08 * Math.sin(t * 0.11)), ly = H * (0.35 + 0.2 * Math.sin(t * 0.07));
+      const leak = ctx.createRadialGradient(lx, ly, 0, lx, ly, Math.max(W, H) * 0.7);
+      leak.addColorStop(0, 'rgba(255,120,60,0.42)'); leak.addColorStop(0.4, 'rgba(200,70,50,0.16)'); leak.addColorStop(1, 'rgba(20,11,8,0)');
+      ctx.fillStyle = leak; ctx.fillRect(0, 0, W, H);
+      ctx.globalCompositeOperation = 'lighter';
+      for (const L of lights) {
+        L.x += L.vx * dt; L.y += L.vy * dt;
+        if (L.x < -0.15) L.x = 1.15; if (L.x > 1.15) L.x = -0.15;
+        const sz = L.r * m * 2 * (L.beat ? 1 + 0.12 * pulse : 1);
+        const big = Math.min(1, Math.sqrt(0.13 / L.r));
+        ctx.globalAlpha = Math.min(1, Math.max(0, (0.55 + 0.25 * Math.sin(t * 0.8 + L.ph) + (L.beat ? 0.35 * pulse : 0) + 0.45 * L.glow) * flick * big));
+        ctx.drawImage(bokeh[L.ci], L.x * W - sz / 2, L.y * H - sz / 2, sz, sz);
+      }
+      ctx.restore();
+      // grain
+      ctx.globalCompositeOperation = 'overlay'; ctx.globalAlpha = 0.22;
+      ctx.save(); ctx.translate(rand(0, 180), rand(0, 180)); ctx.fillStyle = grains[f % grains.length]; ctx.fillRect(-180, -180, W + 360, H + 360); ctx.restore();
+      // vignette + warm crush
+      ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+      const v = ctx.createRadialGradient(W / 2, H / 2, m * 0.25, W / 2, H / 2, Math.hypot(W, H) * 0.62);
+      v.addColorStop(0, 'rgba(10,6,4,0)'); v.addColorStop(1, 'rgba(10,6,4,0.85)');
+      ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
+    }
+    return { reset, frame };
+  })();
+
+  /* ---------- sound: a soft four-on-the-floor, locked to the same beat clock ---------- */
+  const Sound = (() => {
+    let ac, master, timer, nextK = 0, on = false, noise;
+    const chords = [[174.61, 220.0, 329.63, 392.0], [146.83, 174.61, 261.63, 329.63], [116.54, 146.83, 220.0, 349.23], [196.0, 233.08, 349.23, 440.0]];
+    const toAudio = (clockT) => clockT + (ac.currentTime - clock());
+    function kick(at) {
+      const o = ac.createOscillator(), g = ac.createGain();
+      o.frequency.setValueAtTime(140, at); o.frequency.exponentialRampToValueAtTime(42, at + 0.12);
+      g.gain.setValueAtTime(0.0001, at); g.gain.exponentialRampToValueAtTime(0.8, at + 0.005); g.gain.exponentialRampToValueAtTime(0.0001, at + 0.38);
+      o.connect(g).connect(master); o.start(at); o.stop(at + 0.4);
+    }
+    function hat(at) {
+      const s = ac.createBufferSource(); s.buffer = noise;
+      const f = ac.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 7500;
+      const g = ac.createGain(); g.gain.setValueAtTime(0.06, at); g.gain.exponentialRampToValueAtTime(0.0001, at + 0.06);
+      s.connect(f).connect(g).connect(master); s.start(at); s.stop(at + 0.08);
+    }
+    function pad(at, freqs, dur) {
+      const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.setValueAtTime(500, at); f.frequency.linearRampToValueAtTime(1300, at + dur * 0.5); f.frequency.linearRampToValueAtTime(600, at + dur);
+      const g = ac.createGain(); g.gain.setValueAtTime(0.0001, at); g.gain.linearRampToValueAtTime(0.05, at + 1.2); g.gain.setValueAtTime(0.05, at + dur - 0.8); g.gain.linearRampToValueAtTime(0.0001, at + dur + 0.6);
+      f.connect(g).connect(master);
+      for (const fr of freqs) for (const det of [-7, 6]) {
+        const o = ac.createOscillator(); o.type = 'sawtooth'; o.frequency.value = fr; o.detune.value = det;
+        o.connect(f); o.start(at); o.stop(at + dur + 0.7);
+      }
+    }
+    function pump() {
+      while (toAudio(nextK * BEAT) < ac.currentTime + 0.15) {
+        const at = Math.max(ac.currentTime, toAudio(nextK * BEAT));
+        kick(at); hat(at + BEAT / 2);
+        if (nextK % 8 === 0) pad(at, chords[(nextK / 8) % 4], BEAT * 8);
+        nextK++;
+      }
+    }
+    function start() {
+      ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+      if (!noise) { noise = ac.createBuffer(1, ac.sampleRate * 0.1, ac.sampleRate); const d = noise.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+      master = ac.createGain(); master.gain.value = 0.0001; master.connect(ac.destination);
+      master.gain.exponentialRampToValueAtTime(0.9, ac.currentTime + 1.5);
+      ac.resume();
+      nextK = Math.ceil(clock() / BEAT); pump(); timer = setInterval(pump, 25); on = true;
+    }
+    function stop() {
+      clearInterval(timer); on = false;
+      const m = master; m.gain.cancelScheduledValues(ac.currentTime); m.gain.setValueAtTime(m.gain.value, ac.currentTime);
+      m.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + 0.8); setTimeout(() => m.disconnect(), 1000);
+    }
+    return { start, stop, get on() { return on; } };
+  })();
+
+  /* ---------- wiring ---------- */
+  const listen = document.getElementById('listen');
+  listen.addEventListener('click', () => {
+    if (Sound.on) Sound.stop(); else Sound.start();
+    listen.setAttribute('aria-pressed', String(Sound.on));
+  });
+
+  const mission = document.getElementById('mission');
+  const openMission = () => { mission.classList.add('open'); mission.setAttribute('aria-hidden', 'false'); document.getElementById('close-mission').focus(); };
+  function closeMission() { if (!mission.classList.contains('open')) return; mission.classList.remove('open'); mission.setAttribute('aria-hidden', 'true'); document.getElementById('open-mission').focus(); }
+  document.getElementById('open-mission').addEventListener('click', openMission);
+  document.getElementById('close-mission').addEventListener('click', closeMission);
+  addEventListener('keydown', e => { if (e.key === 'Escape') closeMission(); });
+
+  const form = document.getElementById('waitlist'), email = document.getElementById('email'), status = document.getElementById('status');
+  const say = (msg, done) => { status.textContent = msg; status.classList.toggle('done', !!done); };
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const value = email.value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) { say('that email doesn’t look right. check it and try again.'); email.focus(); return; }
+    if (!WAITLIST_ENDPOINT) { say('the waitlist isn’t connected yet.'); return; }
+    const btn = form.querySelector('button'); btn.disabled = true; say('joining…');
+    try {
+      const res = await fetch(WAITLIST_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json' },
+        body: new URLSearchParams({ email: value }),
+      });
+      if (!res.ok) throw new Error(String(res.status));
+      form.hidden = true; say('you’re on the list. we’ll write when it’s ready.', true);
+    } catch (err) {
+      say('that didn’t go through. try again in a moment.'); btn.disabled = false;
+    }
+  });
+
+  Film.reset();
+  (function loop() {
+    audioBoost += ((Sound.on ? 1 : 0) - audioBoost) * 0.03;
+    Film.frame(clock());
+    requestAnimationFrame(loop);
+  })();
+})();
+</script>
+</body>
+</html>
