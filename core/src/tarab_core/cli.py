@@ -82,6 +82,16 @@ def _opts(args) -> Options:
     return Options(dry_run=args.dry_run, upgrade=args.upgrade, allow_low=args.allow_low)
 
 
+def _safe_fetch(f: Fetcher, q: Query, args) -> Result:
+    """One track failing (a bug, a disk error) must not stop the rest of the list."""
+    try:
+        return f.fetch(q, _opts(args))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return Result(str(q), Status.FAILED, note=f"error: {e}")
+
+
 def cmd_get(args):
     queries = [Query.parse(t, args.title_first) for t in args.tracks]
     if args.file:
@@ -89,7 +99,7 @@ def cmd_get(args):
     if not queries:
         sys.exit("no tracks given")
     _, f = _engine(args)
-    summary([f.fetch(q, _opts(args)) for q in queries])
+    summary([_safe_fetch(f, q, args) for q in queries])
 
 
 def cmd_ep(args):
@@ -104,7 +114,7 @@ def cmd_ep(args):
     for t in rel.tracks:
         print(f"  {t.length // 60}:{t.length % 60:02d}  {t.title}")
     _, f = _engine(args)
-    summary([f.fetch(q, _opts(args)) for q in rel.queries()], buy_url=rel.url)
+    summary([_safe_fetch(f, q, args) for q in rel.queries()], buy_url=rel.url)
 
 
 def cmd_watch(args):

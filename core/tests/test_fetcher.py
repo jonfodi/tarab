@@ -40,7 +40,8 @@ class FakeSlskd:
         src, how = self.catalog[(user, name)]
         state = {"ok": "Completed, Succeeded", "queued": "Queued, Remotely", "rejected": "Completed, Rejected"}[how]
         if how == "ok":
-            dest = self.downloads / user / Path(name.replace("\\", "/")).name
+            dest = self.enqueue_dest(user, name) if hasattr(self, "enqueue_dest") else \
+                self.downloads / user / Path(name.replace("\\", "/")).name
             dest.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy(src, dest)
         self._t[(user, name)] = Transfer("id", user, name, state, size, size if how == "ok" else 0, 7, None)
@@ -180,3 +181,18 @@ def test_banning_peer_isnt_tried_twice(env, audio_dir):
         ("ok", r"z\Artist - Track A.mp3"): (audio_dir / "t320.mp3", "ok")})
     run(s, state, slskd, "Artist - Track A")
     assert [u for u, _ in slskd.enqueued] == ["banner", "ok"]
+
+
+@needs_ffmpeg
+def test_same_named_copies_dont_overwrite_the_kept_one(env, audio_dir):
+    """Soul Sounds: 4 'unsure' copies all named the same; slskd saved each over the previous one and the
+    engine deleted the file it meant to keep."""
+    s, state = env
+    clip = identity.features(audio.decode(audio_dir / "master_a.flac", sr=identity.SR, ss=60, t=30))
+    ref = Reference([150, 120], [clip], None, ["test"], clip_lengths=[150])
+    # every copy is the shorter edit (unsure), same remote basename, different users -> same local path
+    cat = {(f"u{i}", rf"Compil House\artist - track a.flac"): (audio_dir / "edit_a.flac", "ok") for i in range(3)}
+    slskd = FakeSlskd(s.downloads, cat)
+    slskd.enqueue_dest = lambda user, name: s.downloads / "Compil House" / "artist - track a.flac"
+    r, _ = run(s, state, slskd, "Artist - Track A", ref)
+    assert r.status == Status.OK and Path(r.path).exists()

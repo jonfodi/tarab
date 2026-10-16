@@ -108,3 +108,10 @@ def test_mix_cd_edits_rank_last_and_dont_define_the_majority():
     resp += [peer("orig", f(r"Robert Hood - Omega\01 And Then We Planned Our Escape.aiff", 80_000_000, 457))]
     cs = candidates(Query.parse("Robert Hood - And Then We Planned Our Escape"), resp, official_lengths=[221, 457])
     assert cs[0].username == "orig" and cs[1].mix_compilation
+
+
+def test_dj_pool_edits_only_if_asked():
+    resp = [peer("pool", f(r"x\\Reek0 - Wonderman (Clean).mp3", 11_000_000, 279, br=320)),
+            peer("ok", f(r"x\\Reek0 - Wonderman.mp3", 11_000_000, 278, br=320))]
+    assert [c.username for c in candidates(Query.parse("Reek0 - Wonderman"), resp)] == ["ok"]
+    assert [c.username for c in candidates(Query.parse("Reek0 - Wonderman (Clean)"), resp)] == ["pool"]

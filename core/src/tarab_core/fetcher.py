@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import time
+import uuid
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
@@ -56,6 +57,9 @@ class Options:
     upgrade: bool = False        # re-fetch library tracks that aren't lossless yet
     allow_low: bool = False      # accept below-256 copies when nothing better exists
     make_lq: bool | None = None  # None: use settings
+
+
+HOLD = ".tarab-hold"   # verified-in-progress downloads, one folder per attempt
 
 
 class Parked(Exception):
@@ -282,9 +286,18 @@ class Fetcher:
         """slskd's folder layout differs between versions: find the finished file by size and recency."""
         root = self.s.downloads
         hits = [p for p in root.rglob("*") if p.is_file() and p.stat().st_size == c.size
-                and p.stat().st_mtime >= since - 5]
+                and p.stat().st_mtime >= since - 5 and HOLD not in p.parts]
         hits.sort(key=lambda p: (p.suffix.lower().lstrip(".") == c.ext, p.name == c.name), reverse=True)
-        return hits[0] if hits else None
+        if not hits:
+            return None
+        # Move it out of slskd's folders at once: copies of the same track often share a filename, and slskd
+        # would save the next attempt over this one (we'd then delete the file we meant to keep).
+        hold = root / HOLD / uuid.uuid4().hex[:12]
+        hold.mkdir(parents=True)
+        dest = hold / hits[0].name
+        hits[0].replace(dest)
+        library._tidy(hits[0].parent, root)
+        return dest
 
     def _collect_finished(self, q: Query, ref: Reference | None) -> _Got | None:
         p = library.find_finished(q, self.s.downloads)

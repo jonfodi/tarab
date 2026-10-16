@@ -47,6 +47,8 @@ def file_into_hq(src: Path, q: Query, hq: Path, staging_root: Path, replace: Pat
         dest = _unique(dest)
     shutil.move(str(src), dest)
     _tidy(src.parent, staging_root)
+    if src.parent.name and src.parent.parent.name == ".tarab-hold":
+        _tidy(src.parent.parent, staging_root)
     return dest
 
 
