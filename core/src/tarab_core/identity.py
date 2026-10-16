@@ -1,7 +1,7 @@
 """Is a downloaded file the track (and version) that was asked for?
 
 Compares the file's chroma (which notes are playing, frame by frame) against official audio: Deezer's 30s
-previews or a slice of Bandcamp's full-length stream. Calibrated on real cases: right track 0.94-1.00, other
+previews, a slice of Bandcamp's full-length stream, or slices of a YouTube upload. Calibrated on real cases: right track 0.94-1.00, other
 versions/edits 0.70-0.91, a mislabeled different track 0.53.
 """
 from __future__ import annotations
@@ -112,6 +112,16 @@ def clip_from_stream(url: str, length: float) -> np.ndarray | None:
         import sys
         print(f"tarab: couldn't fetch reference audio ({e})", file=sys.stderr)
         return None
+
+
+def clips_from_full(path: Path) -> list[np.ndarray]:
+    """30s clips at a quarter, half and three quarters of a full-length local file (YouTube). Three, because a
+    single clip can land on a breakdown that the master and the upload mix slightly differently (0.93-1.00 for one
+    clip, 0.96+ for the best of three; other tracks ≤0.6)."""
+    x = audio.decode(path, sr=SR)
+    if len(x) < 60 * SR:
+        return []
+    return [features(x[int(len(x) * f) - 15 * SR: int(len(x) * f) + 15 * SR]) for f in (0.25, 0.5, 0.75)]
 
 
 def clip_match(path: Path, clips: list[np.ndarray]) -> float:

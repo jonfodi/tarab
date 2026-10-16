@@ -21,7 +21,7 @@ VARIANTS = {"remix", "rmx", "bootleg", "edit", "radio", "acapella", "acappella",
             "mixed", "clean", "dirty", "intro", "outro", "acap"}   # clean/dirty/intro/outro: DJ-pool edits
 
 # Words that mark a bracketed "(Someone's Overdub)" / "[XYZ Mix]" tag as a version name.
-VERSION_WORDS = {"mix", "dub", "edit", "remix", "rmx", "version", "rework", "overdub", "vip", "bootleg", "remaster"}
+VERSION_WORDS = {"mix", "mx", "dub", "edit", "remix", "rmx", "version", "rework", "overdub", "vip", "bootleg", "remaster"}
 
 ROMAN = {"ii": "2", "iii": "3", "iv": "4", "vi": "6", "vii": "7", "viii": "8", "ix": "9"}
 

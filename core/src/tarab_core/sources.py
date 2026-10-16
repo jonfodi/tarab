@@ -1,4 +1,4 @@
-"""Official metadata: lengths, BPM, audio clips and tracklists from Deezer, MusicBrainz and Bandcamp.
+"""Official metadata: lengths, BPM, audio clips and tracklists from Deezer, MusicBrainz, Bandcamp and YouTube.
 
 All lookups are best-effort: any service can be down, rate-limited or change shape (Bandcamp's search endpoint is
 unofficial), and a failure only means less to check against, never a crash.
@@ -10,11 +10,12 @@ import json
 import re
 import time
 from dataclasses import dataclass
+from pathlib import Path
 
 import requests
 
 from . import __version__
-from .identity import Reference, clip_from_preview, clip_from_stream
+from .identity import Reference, clip_from_preview, clip_from_stream, clips_from_full
 from .text import STOP, VARIANTS, Query, compact_in, other_version, tokens
 
 UA = f"tarab/{__version__} (https://github.com/jonfodi/tarab)"
@@ -95,6 +96,47 @@ def _bandcamp_page(url: str) -> dict | None:
         return json.loads(html.unescape(m[1])) if m else None
     except (requests.RequestException, ValueError):
         return None
+
+
+YT_JUNK = re.compile(r"[(\[](official|lyrics?|music|audio|visuali[sz]er|video|hq|hd|4k|premiere|out now)[^)\]]*[)\]]",
+                     re.I)
+
+
+def _youtube(q: Query, same) -> tuple[Path, int, bool] | None:
+    """Full-length audio of the track from YouTube (audio only, kept in a temp file): the "Artist - Topic"
+    upload from the label's distributor if there is one, else an upload titled "Artist - Title"."""
+    import shutil
+    import tempfile
+
+    import yt_dlp
+    opts = {"quiet": True, "no_warnings": True, "noprogress": True, "noplaylist": True}
+    with yt_dlp.YoutubeDL(opts) as y:
+        hits = y.extract_info(f"ytsearch8:{q.artist} {q.title}", download=False, process=False)["entries"]
+    picks = []
+    for h in hits:
+        dur, channel, title = h.get("duration") or 0, h.get("channel") or "", h.get("title") or ""
+        if not 90 <= dur <= 20 * 60:
+            continue
+        topic = channel.endswith(" - Topic")
+        artist, _, rest = title.partition(" - ")
+        artist, title = (channel.removesuffix(" - Topic"), title) if topic or not rest else (artist, rest)
+        if same(YT_JUNK.sub("", title).strip(), f"{artist} {channel}"):
+            picks.append((not topic, h["url"], int(dur)))
+    if not picks:
+        return None
+    other, url, dur = min(picks, key=lambda p: p[0])
+    out = Path(tempfile.mkdtemp(prefix="tarab-yt-"))
+    dl = {**opts, "format": "bestaudio/best", "outtmpl": str(out / "ref.%(ext)s"), "retries": 3}
+    for attempt in range(2):   # YouTube intermittently answers 403 to a stream URL; a fresh one usually works
+        try:
+            with yt_dlp.YoutubeDL(dl) as y:
+                y.download([url])
+            break
+        except yt_dlp.utils.DownloadError:
+            if attempt:
+                shutil.rmtree(out, ignore_errors=True)
+                raise
+    return next(out.iterdir()), dur, not other
 
 
 def _split_artist(title: str, artist: str) -> tuple[str, str]:
@@ -219,6 +261,20 @@ def reference(q: Query) -> Reference | None:
                     clip_lengths.append(round(t["duration"]))
                 sources.append("Bandcamp")
                 break
+
+    # YouTube: official audio for tracks no store previews (white labels, self-released, small labels)
+    if not clips and (yt := _safe(lambda: _youtube(q, same))):
+        path, dur, topic = yt
+        try:
+            if yt_clips := _safe(lambda: clips_from_full(path), []):
+                clips += yt_clips
+                clip_lengths += [dur] * len(yt_clips)
+                sources.append("YouTube")
+                if topic:   # distributor upload: the release length (fan uploads may add intros/outros)
+                    lengths.append(dur)
+        finally:
+            import shutil
+            shutil.rmtree(path.parent, ignore_errors=True)
 
     uniq: list[int] = []
     for l in sorted(lengths):

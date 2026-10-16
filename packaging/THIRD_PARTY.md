@@ -19,4 +19,4 @@ tarab (MIT) ships these programs unmodified, as separate executables inside `tar
 ## Python runtime and libraries (inside `Resources/engine/`)
 
 - CPython 3.13 (PSF License), NumPy (BSD-3-Clause), Requests (Apache-2.0), urllib3 (MIT), certifi (MPL-2.0),
-  idna (BSD-3-Clause), charset-normalizer (MIT), packaged with PyInstaller (GPL with bootloader exception).
+  idna (BSD-3-Clause), charset-normalizer (MIT), yt-dlp (Unlicense), packaged with PyInstaller (GPL with bootloader exception).

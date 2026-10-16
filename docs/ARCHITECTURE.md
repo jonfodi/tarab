@@ -20,7 +20,7 @@ Music: ~/Music/tarab/HQ (shared by default), ~/Music/tarab/LQ (optional MP3s)
 |---|---|
 | `text` | normalisation, matching heuristics, `Query` parsing (`Artist - Title [CAT] \| m:ss`) |
 | `ranking` | Soulseek responses → filtered, ranked `Candidate`s |
-| `sources` | Deezer / MusicBrainz / Bandcamp: official lengths, BPM, audio, tracklists |
+| `sources` | Deezer / MusicBrainz / Bandcamp / YouTube: official lengths, BPM, audio, tracklists |
 | `identity` | chroma fingerprint match vs official audio → ok / unsure / wrong / unknown |
 | `audio` | ffmpeg helpers, transcode (lowpass cliff) detection, quality tiers |
 | `slskd` | REST client: search, enqueue, transfers, shares |
@@ -57,5 +57,6 @@ progress), Listen (tracks whose identity couldn't be confirmed), Wishlist, Libra
 - When MusicBrainz lists many lengths for a title (compilation edits), "official length" stops discriminating
   versions (e.g. "On & On" picked a 6:15 edit over the 7:54 album version). Deezer lengths, which come with
   audio, should outrank MusicBrainz when they disagree.
-- Bandcamp's search endpoint is unofficial and may change.
+- Bandcamp's search endpoint is unofficial and may change. YouTube (via yt-dlp) breaks whenever YouTube changes;
+  it is only a reference of last resort, its audio is never kept, and yt-dlp needs updating with each release.
 - Fetches run one track at a time.

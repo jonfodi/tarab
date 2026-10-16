@@ -4,7 +4,11 @@ version = "0.1.0"
 description = "tarab engine: find, verify and file DJ-quality tracks from Soulseek (via slskd)"
 requires-python = ">=3.12"
 license = "MIT"
-dependencies = ["numpy>=2", "requests>=2.31"]
+dependencies = [
+    "numpy>=2",
+    "requests>=2.31",
+    "yt-dlp>=2026.8.19",
+]
 
 [project.scripts]
 tarab = "tarab_core.cli:main"

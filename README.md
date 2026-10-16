@@ -51,7 +51,8 @@ version.
 
 ## How it decides
 
-1. **Reference:** official lengths, BPM and audio (Deezer previews, Bandcamp streams, MusicBrainz lengths).
+1. **Reference:** official lengths, BPM and audio (Deezer previews, Bandcamp streams, MusicBrainz lengths;
+   YouTube uploads when no store has the track — compared, never kept).
 2. **Match:** title words in the filename, artist words in the path; remixes/edits/dubs only if asked for.
 3. **Rank:** catalog match › official length › the length most copies agree on › quality (lossless › 320/V0 ›
    256) › reliable peer › free slot › speed.
